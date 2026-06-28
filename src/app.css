@@ -1,0 +1,52 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light dark;
+}
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 4rem);
+  grid-template-rows: repeat(3, 4rem);
+  gap: 2px;
+}
+.cell {
+  font-size: 1.5rem;
+  border: 1px solid #888;
+  background: transparent;
+  cursor: pointer;
+}
+.cell.prefilled {
+  font-weight: bold;
+  cursor: default;
+}
+.cell.selected {
+  outline: 3px solid dodgerblue;
+}
+.numberpad {
+  display: grid;
+  grid-template-columns: repeat(5, 2.5rem);
+  gap: 4px;
+}
+.numberpad button {
+  font-size: 1.1rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+}
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+}
+.result {
+  font-weight: bold;
+}

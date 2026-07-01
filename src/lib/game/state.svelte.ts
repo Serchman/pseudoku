@@ -1,8 +1,11 @@
 import { generatePuzzle, isComplete, type Board } from './board';
-import { FLAT_POINTS } from './config';
-import { loadPointokus, savePointokus } from './storage';
+import { ACTIVE_BOARD, GLOBAL_MULTIPLIER } from './config';
+import { computeScore } from './scoring';
+import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
+import { loadPointokus, savePointokus, loadUnlocks, saveUnlocks } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
+type ViewId = 'board' | 'unlocks' | 'settings';
 
 function createGame() {
   let pointokus = $state(loadPointokus());
@@ -10,7 +13,11 @@ function createGame() {
   let status = $state<Status>('idle');
   let selected = $state<number | null>(null);
   let elapsed = $state(0);
-  let lastResult = $state<{ points: number; timeMs: number } | null>(null);
+  let lastResult = $state<{ points: number; timeMs: number; bracketMult: number; speedApplied: boolean } | null>(
+    null,
+  );
+  let activeView = $state<ViewId>('board');
+  let owned = $state<Set<string>>(new Set(loadUnlocks()));
 
   let startTime = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
@@ -59,10 +66,32 @@ function createGame() {
     stopTimer();
     const timeMs = performance.now() - startTime;
     elapsed = timeMs;
-    pointokus += FLAT_POINTS;
+    const result = computeScore(timeMs, ACTIVE_BOARD.brackets, {
+      speedBonusOwned: owned.has('speed-bonus'),
+      globalMultiplier: GLOBAL_MULTIPLIER,
+    });
+    pointokus += result.points;
     savePointokus(pointokus);
-    lastResult = { points: FLAT_POINTS, timeMs };
+    lastResult = {
+      points: result.points,
+      timeMs,
+      bracketMult: result.bracketMult,
+      speedApplied: result.speedApplied,
+    };
     status = 'complete';
+  }
+
+  function setView(v: ViewId) {
+    activeView = v;
+  }
+
+  function buyUnlock(id: string) {
+    if (!canBuy(id, pointokus, owned)) return;
+    const u = UNLOCKS.find((x) => x.id === id)!;
+    pointokus -= u.cost;
+    owned = new Set([...owned, id]); // reassign so the $state Set triggers reactivity
+    savePointokus(pointokus);
+    saveUnlocks([...owned]);
   }
 
   function reset() {
@@ -101,11 +130,28 @@ function createGame() {
       if (board === null) return 0;
       return board.filter((cell) => !cell.prefilled && cell.value != null).length;
     },
+    get activeView() {
+      return activeView;
+    },
+    get ownedCount() {
+      return owned.size;
+    },
+    get nextUnlock() {
+      return getNextUnlock(owned);
+    },
+    get speedBonusOwned() {
+      return owned.has('speed-bonus');
+    },
+    isOwned(id: string) {
+      return owned.has(id);
+    },
     start,
     select,
     place,
     clear,
     reset,
+    setView,
+    buyUnlock,
   };
 }
 

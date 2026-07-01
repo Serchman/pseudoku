@@ -93,6 +93,14 @@ function createGame() {
     get lastResult() {
       return lastResult;
     },
+    get editableCount() {
+      if (board === null) return 0;
+      return board.filter((cell) => !cell.prefilled).length;
+    },
+    get filledCount() {
+      if (board === null) return 0;
+      return board.filter((cell) => !cell.prefilled && cell.value != null).length;
+    },
     start,
     select,
     place,

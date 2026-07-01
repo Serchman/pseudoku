@@ -40,4 +40,9 @@ describe('unlocks persistence', () => {
     localStorage.setItem('sudoku-incremental:unlocks', 'not-json');
     expect(loadUnlocks()).toEqual([]);
   });
+
+  it('returns [] when the stored value is valid JSON but not an array', () => {
+    localStorage.setItem('sudoku-incremental:unlocks', '{"a":1}');
+    expect(loadUnlocks()).toEqual([]);
+  });
 });

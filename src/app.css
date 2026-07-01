@@ -105,6 +105,10 @@ body {
   padding: 0 26px;
 }
 
+.tabs {
+  flex: none;
+}
+
 .body {
   flex: 1;
   display: flex;

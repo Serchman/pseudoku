@@ -1,25 +1,11 @@
-<script lang="ts">
-  import { game } from '../game/state.svelte';
-  import { FLAT_POINTS } from '../game/config';
-</script>
+<script lang="ts"></script>
 
 <div class="sidebar-panel">
-  <div class="points-card">
-    <div class="points-label">POINTS</div>
-    <div class="points-value">{game.pointokus}</div>
-    <div class="points-sub" class:complete={game.status === 'complete'}>
-      +{FLAT_POINTS} per solved board
-    </div>
-    {#if game.status === 'complete' && game.lastResult}
-      <div class="points-tick">+{game.lastResult.points}</div>
-    {/if}
-  </div>
-
   <div class="unlocks">
     <div class="unlocks-head">
-      <span>UNLOCKS</span>
-      <span class="unlocks-count">1 / 3</span>
+      <span>BOARD UPGRADES</span>
     </div>
+    <div class="unlocks-sub">Boosts that apply to this board only.</div>
     <div class="unlocks-list">
       <div class="unlock-row affordable">
         <div>
@@ -58,52 +44,6 @@
     gap: 18px;
   }
 
-  .points-card {
-    position: relative;
-    background: var(--panel-2);
-    border: 1px solid var(--border-2);
-    border-radius: 10px;
-    padding: 16px;
-  }
-
-  .points-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted-2);
-  }
-
-  .points-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 46px;
-    font-weight: 600;
-    color: var(--points);
-    line-height: 1.1;
-    margin-top: 4px;
-  }
-
-  .points-sub {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 11.5px;
-    color: var(--dim);
-    margin-top: 2px;
-  }
-
-  .points-sub.complete {
-    color: var(--accent);
-  }
-
-  .points-tick {
-    position: absolute;
-    top: 8px;
-    right: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--accent);
-    text-shadow: 0 0 12px rgba(94, 234, 212, 0.6);
-  }
-
   .unlocks-head {
     display: flex;
     justify-content: space-between;
@@ -112,12 +52,14 @@
     font-size: 11px;
     letter-spacing: 2px;
     color: var(--muted-2);
-    margin-bottom: 10px;
   }
 
-  .unlocks-count {
-    letter-spacing: normal;
-    color: var(--dim);
+  .unlocks-sub {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--muted-2);
+    margin-top: 4px;
+    margin-bottom: 10px;
   }
 
   .unlocks-list {

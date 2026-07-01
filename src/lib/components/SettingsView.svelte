@@ -1,3 +1,5 @@
+<script lang="ts"></script>
+
 <div class="settings-view">
   <div class="settings-panel">
     <div class="settings-label">SETTINGS</div>

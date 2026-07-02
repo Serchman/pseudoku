@@ -9,6 +9,7 @@ type ViewId = 'board' | 'unlocks' | 'settings';
 
 function createGame() {
   let pointokus = $state(loadPointokus());
+  let pendingPoints = $state(0);
   let board = $state<Board | null>(null);
   let status = $state<Status>('idle');
   let selected = $state<number | null>(null);
@@ -70,8 +71,7 @@ function createGame() {
       speedBonusOwned: owned.has('speed-bonus'),
       globalMultiplier: GLOBAL_MULTIPLIER,
     });
-    pointokus += result.points;
-    savePointokus(pointokus);
+    pendingPoints += result.points;
     lastResult = {
       points: result.points,
       timeMs,
@@ -94,8 +94,11 @@ function createGame() {
     saveUnlocks([...owned]);
   }
 
-  function reset() {
+  function resetAll() {
     stopTimer();
+    pointokus += pendingPoints;
+    savePointokus(pointokus);
+    pendingPoints = 0;
     board = null;
     selected = null;
     status = 'idle';
@@ -106,6 +109,9 @@ function createGame() {
   return {
     get pointokus() {
       return pointokus;
+    },
+    get pendingPoints() {
+      return pendingPoints;
     },
     get board() {
       return board;
@@ -149,7 +155,7 @@ function createGame() {
     select,
     place,
     clear,
-    reset,
+    resetAll,
     setView,
     buyUnlock,
   };

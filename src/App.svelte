@@ -25,9 +25,26 @@
       <span class="wordmark">SUDOKU_INCREMENTAL<span class="accent">_</span></span>
       <span class="version">v0.1</span>
     </div>
-    <div class="points-pill">
-      <span class="points-pill-label">POINTS</span>
-      <span class="points-pill-value">{game.pointokus}</span>
+    <div class="header-center">
+      <div class="points-box">
+        <span class="points-box-label">POINTS</span>
+        <span class="points-box-value">{game.pointokus}</span>
+      </div>
+      <button
+        class="prestige-btn"
+        class:active={game.pendingPoints > 0}
+        onclick={() => game.resetAll()}
+      >
+        <span class="prestige-text">
+          <span class="prestige-label">↺ RESET ALL BOARDS</span>
+          <span class="prestige-sub">Prestige — wipes every board</span>
+        </span>
+        <span class="prestige-divider"></span>
+        <span class="prestige-gain">
+          <span class="prestige-gain-value">+{game.pendingPoints}</span>
+          <span class="prestige-gain-label">POINTS</span>
+        </span>
+      </button>
     </div>
   </div>
 
@@ -73,13 +90,6 @@
             <span class="filled-counter" class:active={game.status !== 'idle'}>
               {game.filledCount} / {game.editableCount} filled{game.status === 'complete' ? ' ✓' : ''}
             </span>
-            <button
-              class="reset-btn"
-              class:complete={game.status === 'complete'}
-              onclick={() => game.reset()}
-            >
-              ↺ Reset Board
-            </button>
           </div>
         </div>
       </main>
@@ -128,29 +138,103 @@
     color: var(--dim);
   }
 
-  .points-pill {
+  .header-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: var(--panel-2);
-    border: 1px solid var(--border-2);
-    border-radius: 10px;
-    padding: 7px 14px;
+    gap: 16px;
   }
 
-  .points-pill-label {
+  .points-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 12px;
+    padding: 8px 24px;
+  }
+
+  .points-box-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
+    font-size: 9.5px;
+    letter-spacing: 3px;
     color: var(--muted-2);
   }
 
-  .points-pill-value {
+  .points-box-value {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 20px;
+    font-size: 27px;
     font-weight: 600;
     color: var(--points);
     line-height: 1;
+  }
+
+  .prestige-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--accent-fill);
+    border: 1px solid #2f6b5a;
+    border-radius: 12px;
+    padding: 9px 18px;
+    cursor: pointer;
+  }
+
+  .prestige-btn.active {
+    box-shadow: 0 0 24px rgba(94, 234, 212, 0.14);
+  }
+
+  .prestige-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .prestige-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 2.5px;
+    color: var(--accent);
+  }
+
+  .prestige-sub {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--muted-2);
+  }
+
+  .prestige-divider {
+    width: 1px;
+    height: 34px;
+    background: var(--accent-border);
+  }
+
+  .prestige-gain {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .prestige-gain-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .prestige-gain-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    color: #3f6b60;
   }
 
   .tabs {
@@ -275,7 +359,7 @@
 
   .board-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
   }
 
@@ -289,22 +373,4 @@
     color: var(--accent);
   }
 
-  .reset-btn {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid #2a323e;
-    border-radius: 6px;
-    padding: 9px 15px;
-    cursor: pointer;
-  }
-
-  .reset-btn.complete {
-    background: var(--accent);
-    color: var(--accent-on-dark);
-    border: none;
-    font-weight: 600;
-  }
 </style>

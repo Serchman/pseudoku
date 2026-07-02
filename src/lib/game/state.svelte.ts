@@ -2,12 +2,22 @@ import { generatePuzzle, isComplete, type Board } from './board';
 import { ACTIVE_BOARD, GLOBAL_MULTIPLIER } from './config';
 import { computeScore } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
-import { loadPointokus, savePointokus, loadUnlocks, saveUnlocks } from './storage';
+import { getTierById, canBuyTier } from './tiers';
+import {
+  loadPointokus,
+  savePointokus,
+  loadUnlocks,
+  saveUnlocks,
+  loadOwnedTiers,
+  saveOwnedTiers,
+  loadSelectedTier,
+  saveSelectedTier,
+} from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
 type ViewId = 'board' | 'unlocks' | 'settings';
 
-function createGame() {
+export function createGame() {
   let pointokus = $state(loadPointokus());
   let pendingPoints = $state(0);
   let board = $state<Board | null>(null);
@@ -19,9 +29,15 @@ function createGame() {
   );
   let activeView = $state<ViewId>('board');
   let owned = $state<Set<string>>(new Set(loadUnlocks()));
+  let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(ACTIVE_BOARD.id)));
+  let selectedTierId = $state<string>(loadSelectedTier(ACTIVE_BOARD.id));
 
   let startTime = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
+
+  function selectedTier() {
+    return getTierById(ACTIVE_BOARD.tiers, selectedTierId) ?? ACTIVE_BOARD.tiers[0];
+  }
 
   function stopTimer() {
     if (timer !== null) {
@@ -31,7 +47,7 @@ function createGame() {
   }
 
   function start() {
-    board = generatePuzzle();
+    board = generatePuzzle(selectedTier().emptyCells);
     selected = null;
     lastResult = null;
     elapsed = 0;
@@ -70,6 +86,7 @@ function createGame() {
     const result = computeScore(timeMs, ACTIVE_BOARD.brackets, {
       speedBonusOwned: owned.has('speed-bonus'),
       globalMultiplier: GLOBAL_MULTIPLIER,
+      difficultyMult: selectedTier().mult,
     });
     pendingPoints += result.points;
     lastResult = {
@@ -92,6 +109,22 @@ function createGame() {
     owned = new Set([...owned, id]); // reassign so the $state Set triggers reactivity
     savePointokus(pointokus);
     saveUnlocks([...owned]);
+  }
+
+  function buyTier(id: string) {
+    if (!canBuyTier(id, pointokus, ownedTiers, ACTIVE_BOARD.tiers)) return;
+    const t = getTierById(ACTIVE_BOARD.tiers, id)!;
+    pointokus -= t.cost;
+    ownedTiers = new Set([...ownedTiers, id]); // reassign so the $state Set triggers reactivity
+    savePointokus(pointokus);
+    saveOwnedTiers(ACTIVE_BOARD.id, [...ownedTiers]);
+  }
+
+  function selectTier(id: string) {
+    if (status === 'playing') return;   // can't switch difficulty mid-solve
+    if (!ownedTiers.has(id)) return;    // only owned tiers are selectable
+    selectedTierId = id;
+    saveSelectedTier(ACTIVE_BOARD.id, id);
   }
 
   function resetAll() {
@@ -151,6 +184,17 @@ function createGame() {
     isOwned(id: string) {
       return owned.has(id);
     },
+    get selectedTier() {
+      return selectedTier();
+    },
+    get tiers() {
+      return ACTIVE_BOARD.tiers.map((t) => ({
+        ...t,
+        owned: ownedTiers.has(t.id),
+        selected: t.id === selectedTierId,
+        buyable: canBuyTier(t.id, pointokus, ownedTiers, ACTIVE_BOARD.tiers),
+      }));
+    },
     start,
     select,
     place,
@@ -158,6 +202,8 @@ function createGame() {
     resetAll,
     setView,
     buyUnlock,
+    buyTier,
+    selectTier,
   };
 }
 

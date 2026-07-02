@@ -97,7 +97,8 @@ body {
 }
 
 .topbar {
-  height: 58px;
+  position: relative;
+  height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;

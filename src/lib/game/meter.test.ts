@@ -15,9 +15,9 @@ describe('computeSegments', () => {
     expect(totalWidth).toBeCloseTo(100);
   });
 
-  it('clamps the open last bracket to the horizon (60s)', () => {
-    expect(horizonSec).toBe(60);
-    expect(segments[segments.length - 1].endSec).toBe(60);
+  it('clamps the open last bracket to the horizon (9s)', () => {
+    expect(horizonSec).toBe(9);
+    expect(segments[segments.length - 1].endSec).toBe(9);
   });
 });
 
@@ -28,24 +28,24 @@ describe('computeMeterPosition', () => {
     expect(pos.currentMult).toBe(8);
     expect(pos.activeIndex).toBe(0);
     expect(pos.positionPct).toBe(0);
-    expect(pos.nextDropSec).toBe(5);
+    expect(pos.nextDropSec).toBe(2);
     expect(pos.nextMult).toBe(5);
   });
 
-  it('t=7 → second bracket, drop info for third bracket', () => {
-    const pos = positionAt(7);
+  it('t=2.5 → second bracket, drop info for third bracket', () => {
+    const pos = positionAt(2.5);
 
     expect(pos.currentMult).toBe(5);
-    expect(pos.nextDropSec).toBe(3);
+    expect(pos.nextDropSec).toBe(0.5);
     expect(pos.nextMult).toBe(3);
   });
 
-  it('t=5 boundary → still fastest bracket (<= semantics)', () => {
-    expect(positionAt(5).currentMult).toBe(8);
+  it('t=2 boundary → still fastest bracket (<= semantics)', () => {
+    expect(positionAt(2).currentMult).toBe(8);
   });
 
-  it('t=45 (past 40, within 60 horizon) → last bracket, no next drop', () => {
-    const pos = positionAt(45);
+  it('t=7 (past 6, within 9 horizon) → last bracket, no next drop', () => {
+    const pos = positionAt(7);
 
     expect(pos.currentMult).toBe(1);
     expect(pos.nextDropSec).toBeNull();

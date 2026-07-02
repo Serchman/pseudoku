@@ -21,20 +21,20 @@ describe('computeScore', () => {
   });
 
   it('awards strictly more points for a faster solve within the same bracket', () => {
-    const fast = computeScore(1000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
-    const slow = computeScore(4000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
+    const fast = computeScore(500, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
+    const slow = computeScore(1500, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
 
     expect(fast.bracketMult).toBe(slow.bracketMult);
     expect(fast.points).toBeGreaterThan(slow.points);
   });
 
-  it('picks the bracket at the exact 5s boundary (<=)', () => {
-    const result = computeScore(5000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
+  it('picks the bracket at the exact 2s boundary (<=)', () => {
+    const result = computeScore(2000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
     expect(result.bracketMult).toBe(8);
   });
 
-  it('picks the bracket at the exact 10s boundary (<=)', () => {
-    const result = computeScore(10000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
+  it('picks the bracket at the exact 3s boundary (<=)', () => {
+    const result = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
     expect(result.bracketMult).toBe(5);
   });
 
@@ -46,7 +46,7 @@ describe('computeScore', () => {
     expect(doubled.points).toBeLessThanOrEqual(base.points * 2 + 1);
   });
 
-  it('applies no bonus in the catch-all bracket beyond 40s', () => {
+  it('applies no bonus in the catch-all bracket beyond 6s', () => {
     const result = computeScore(50000, brackets, { speedBonusOwned: true, globalMultiplier: 1, difficultyMult: 1 });
     expect(result.expFactor).toBe(1);
     expect(result.bracketMult).toBe(1);

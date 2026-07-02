@@ -30,10 +30,10 @@ export const BOARDS: Record<string, BoardConfig> = {
   default: {
     id: 'default',
     brackets: [
-      { maxSec: 5, mult: 8 },
-      { maxSec: 10, mult: 5 },
-      { maxSec: 20, mult: 3 },
-      { maxSec: 40, mult: 2 },
+      { maxSec: 2, mult: 8 },
+      { maxSec: 3, mult: 5 },
+      { maxSec: 4, mult: 3 },
+      { maxSec: 6, mult: 2 },
       { maxSec: Infinity, mult: 1 },
     ],
     // Difficulty tiers: more empty cells for a bigger multiplier (speed vs. reward tradeoff).

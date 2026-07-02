@@ -14,6 +14,15 @@ describe('generatePuzzle', () => {
     expect(empty.every((c) => c.prefilled === false)).toBe(true);
   });
 
+  it('leaves exactly the requested number of empty cells for n = 3, 5, 7', () => {
+    for (const n of [3, 5, 7]) {
+      const board = generatePuzzle(n);
+      const empty = board.filter((c) => c.value === null);
+      expect(empty).toHaveLength(n);
+      expect(empty.every((c) => c.prefilled === false)).toBe(true);
+    }
+  });
+
   it('prefilled cells hold distinct numbers within 1..BOARD_SIZE', () => {
     const board = generatePuzzle();
     const filled = board.filter((c) => c.value !== null);

@@ -1,33 +1,42 @@
-<script lang="ts"></script>
+<script lang="ts">
+  import { game } from '../game/state.svelte';
+</script>
 
 <div class="sidebar-panel">
   <div class="unlocks">
     <div class="unlocks-head">
-      <span>BOARD UPGRADES</span>
+      <span>DIFFICULTY</span>
     </div>
-    <div class="unlocks-sub">Boosts that apply to this board only.</div>
+    <div class="unlocks-sub">More blanks for a bigger points multiplier.</div>
     <div class="unlocks-list">
-      <div class="unlock-row affordable">
-        <div>
-          <div class="unlock-title">Auto-fill hint</div>
-          <div class="unlock-sub">Reveals one cell</div>
+      {#each game.tiers as tier (tier.id)}
+        <div
+          class="unlock-row"
+          class:affordable={tier.buyable}
+          class:locked={!tier.owned && !tier.buyable}
+          class:selected={tier.selected}
+        >
+          <div>
+            <div class="unlock-title" class:locked={!tier.owned && !tier.buyable}>{tier.label}</div>
+            <div class="unlock-sub">{tier.emptyCells} empty · ×{tier.mult}</div>
+          </div>
+          {#if tier.owned}
+            {#if tier.selected}
+              <span class="unlock-owned">ACTIVE</span>
+            {:else}
+              <button
+                class="tier-btn"
+                onclick={() => game.selectTier(tier.id)}
+                disabled={game.status === 'playing'}
+              >SELECT</button>
+            {/if}
+          {:else if tier.buyable}
+            <button class="tier-btn buy" onclick={() => game.buyTier(tier.id)}>{tier.cost} P</button>
+          {:else}
+            <span class="unlock-badge locked">🔒 {tier.cost}</span>
+          {/if}
         </div>
-        <span class="unlock-badge affordable">120 P</span>
-      </div>
-      <div class="unlock-row locked">
-        <div>
-          <div class="unlock-title locked">Larger board</div>
-          <div class="unlock-sub">Unlock 4×4 grid</div>
-        </div>
-        <span class="unlock-badge locked">🔒 500</span>
-      </div>
-      <div class="unlock-row">
-        <div>
-          <div class="unlock-title">Point multiplier</div>
-          <div class="unlock-sub">×1.5 per solve</div>
-        </div>
-        <span class="unlock-owned">✓ OWNED</span>
-      </div>
+      {/each}
     </div>
   </div>
 
@@ -82,6 +91,11 @@
     border-color: var(--accent-border-2);
   }
 
+  .unlock-row.selected {
+    border-color: var(--accent-border);
+    box-shadow: 0 0 20px rgba(94, 234, 212, 0.15);
+  }
+
   .unlock-row.locked {
     background: #0b0e12;
     opacity: 0.55;
@@ -112,12 +126,6 @@
     padding: 4px 8px;
   }
 
-  .unlock-badge.affordable {
-    color: var(--accent);
-    background: var(--accent-fill);
-    border: 1px solid var(--accent-border);
-  }
-
   .unlock-badge.locked {
     color: #7a8696;
     background: #10141a;
@@ -129,6 +137,28 @@
     font-size: 11px;
     color: var(--accent);
     letter-spacing: 0.5px;
+  }
+
+  .tier-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #cdd8e4;
+    background: #10141a;
+    border: 1px solid var(--border-4);
+    border-radius: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .tier-btn.buy {
+    color: var(--accent);
+    background: var(--accent-fill);
+    border-color: var(--accent-border);
+  }
+
+  .tier-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   .key-hint {

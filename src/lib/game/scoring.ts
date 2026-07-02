@@ -11,10 +11,15 @@ export interface ScoreResult {
 export function computeScore(
   timeMs: number,
   brackets: Bracket[],
-  opts: { speedBonusOwned: boolean; globalMultiplier: number },
+  opts: { speedBonusOwned: boolean; globalMultiplier: number; difficultyMult: number },
 ): ScoreResult {
   if (!opts.speedBonusOwned) {
-    return { points: FLAT_POINTS, bracketMult: 1, expFactor: 1, speedApplied: false };
+    return {
+      points: Math.round(FLAT_POINTS * opts.difficultyMult),
+      bracketMult: 1,
+      expFactor: 1,
+      speedApplied: false,
+    };
   }
 
   const t = timeMs / 1000;
@@ -39,7 +44,9 @@ export function computeScore(
   }
 
   const bracketMult = selected.mult;
-  const points = Math.round(FLAT_POINTS * bracketMult * expFactor * opts.globalMultiplier);
+  const points = Math.round(
+    FLAT_POINTS * bracketMult * expFactor * opts.globalMultiplier * opts.difficultyMult,
+  );
 
   return { points, bracketMult, expFactor, speedApplied: true };
 }

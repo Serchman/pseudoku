@@ -12,7 +12,7 @@ function shuffle<T>(items: T[]): T[] {
   return arr;
 }
 
-export function generatePuzzle(): Board {
+export function generatePuzzle(emptyCells: number = EMPTY_CELLS): Board {
   const numbers = shuffle(
     Array.from({ length: BOARD_SIZE }, (_, i) => i + 1),
   );
@@ -20,7 +20,7 @@ export function generatePuzzle(): Board {
 
   const indices = shuffle(
     Array.from({ length: BOARD_SIZE }, (_, i) => i),
-  ).slice(0, EMPTY_CELLS);
+  ).slice(0, emptyCells);
 
   for (const i of indices) {
     board[i] = { value: null, prefilled: false };

@@ -10,9 +10,18 @@ export interface Bracket {
   mult: number;   // bracket multiplier
 }
 
+export interface DifficultyTier {
+  id: string;
+  label: string;
+  emptyCells: number; // blank cells the player must fill
+  mult: number;       // points multiplier applied to the whole payout
+  cost: number;       // pointokus to unlock (0 = free starter tier)
+}
+
 export interface BoardConfig {
   id: string;
   brackets: Bracket[];
+  tiers: DifficultyTier[]; // ordered; tiers[0] is the free starter, bought sequentially
 }
 
 // Shaped as "one entry per board type" so more boards slot in later.
@@ -26,6 +35,12 @@ export const BOARDS: Record<string, BoardConfig> = {
       { maxSec: 20, mult: 3 },
       { maxSec: 40, mult: 2 },
       { maxSec: Infinity, mult: 1 },
+    ],
+    // Difficulty tiers: more empty cells for a bigger multiplier (speed vs. reward tradeoff).
+    tiers: [
+      { id: 'easy', label: 'Easy', emptyCells: 3, mult: 1.0, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 5, mult: 2.0, cost: 50 },
+      { id: 'hard', label: 'Hard', emptyCells: 7, mult: 3.5, cost: 200 },
     ],
   },
 };

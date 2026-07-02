@@ -11,9 +11,15 @@ export interface MeterSegment {
   centerPct: number; // for label positioning ((startPct + endPct) / 2)
 }
 
-export interface MeterState {
+// Bar geometry — depends only on the (constant) brackets, so it is computed
+// once per board rather than on every game tick.
+export interface MeterGeometry {
   segments: MeterSegment[]; // fast→slow == left→right (same order as brackets)
   horizonSec: number;
+}
+
+// The parts that change as time elapses — recomputed every tick (~50ms).
+export interface MeterPosition {
   currentMult: number;
   activeIndex: number;
   positionPct: number; // indicator position, clamped 0..100
@@ -21,7 +27,7 @@ export interface MeterState {
   nextMult: number | null; // multiplier after the next drop; null in last bracket
 }
 
-export function computeMeter(elapsedSec: number, brackets: Bracket[]): MeterState {
+export function computeSegments(brackets: Bracket[]): MeterGeometry {
   const maxFiniteSec = Math.max(...brackets.filter((b) => Number.isFinite(b.maxSec)).map((b) => b.maxSec));
   const horizonSec = maxFiniteSec * METER_HORIZON_FACTOR;
 
@@ -43,6 +49,14 @@ export function computeMeter(elapsedSec: number, brackets: Bracket[]): MeterStat
     prevMaxSec = bracket.maxSec;
   }
 
+  return { segments, horizonSec };
+}
+
+export function computeMeterPosition(
+  elapsedSec: number,
+  brackets: Bracket[],
+  horizonSec: number,
+): MeterPosition {
   let activeIndex = brackets.length - 1;
   for (let i = 0; i < brackets.length; i++) {
     if (elapsedSec <= brackets[i].maxSec) {
@@ -62,7 +76,7 @@ export function computeMeter(elapsedSec: number, brackets: Bracket[]): MeterStat
     nextMult = brackets[activeIndex + 1].mult;
   }
 
-  return { segments, horizonSec, currentMult, activeIndex, positionPct, nextDropSec, nextMult };
+  return { currentMult, activeIndex, positionPct, nextDropSec, nextMult };
 }
 
 export function formatClock(ms: number): string {

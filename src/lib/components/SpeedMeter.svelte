@@ -1,43 +1,45 @@
 <script lang="ts">
   import { game } from '../game/state.svelte';
   import { ACTIVE_BOARD } from '../game/config';
-  import { computeMeter, formatClock, formatCountdown } from '../game/meter';
+  import { computeSegments, computeMeterPosition, formatClock, formatCountdown } from '../game/meter';
 
-  const meter = $derived(computeMeter(game.elapsed / 1000, ACTIVE_BOARD.brackets));
+  // Bar geometry never changes for a board — compute it once, not every tick.
+  const { segments, horizonSec } = computeSegments(ACTIVE_BOARD.brackets);
+  const pos = $derived(computeMeterPosition(game.elapsed / 1000, ACTIVE_BOARD.brackets, horizonSec));
 </script>
 
 <div class="speed-meter">
   <div class="top-row">
     <span class="clock">{formatClock(game.elapsed)}</span>
     <span class="arrow">➜</span>
-    <span class="mult">×{meter.currentMult.toFixed(1)}</span>
+    <span class="mult">×{pos.currentMult.toFixed(1)}</span>
   </div>
 
   <div class="bar">
-    <div class="fill" style="width: {meter.positionPct}%"></div>
-    {#each meter.segments as segment, i}
-      {#if i < meter.segments.length - 1}
+    <div class="fill" style="width: {pos.positionPct}%"></div>
+    {#each segments as segment, i}
+      {#if i < segments.length - 1}
         <div class="divider" style="left: {segment.endPct}%"></div>
       {/if}
     {/each}
   </div>
 
   <div class="indicator-row">
-    <span class="indicator" style="left: {meter.positionPct}%">▲</span>
+    <span class="indicator" style="left: {pos.positionPct}%">▲</span>
   </div>
 
   <div class="labels-row">
-    {#each meter.segments as segment, i}
-      <span class="label" class:active={i === meter.activeIndex} style="left: {segment.centerPct}%">
+    {#each segments as segment, i}
+      <span class="label" class:active={i === pos.activeIndex} style="left: {segment.centerPct}%">
         ×{segment.mult.toFixed(1)}
       </span>
     {/each}
   </div>
 
-  {#if meter.nextDropSec !== null}
+  {#if pos.nextDropSec !== null}
     <div class="next-drop">
       <span class="dot"></span>
-      next drop {formatCountdown(meter.nextDropSec)} → ×{meter.nextMult?.toFixed(1)}
+      next drop {formatCountdown(pos.nextDropSec)} → ×{pos.nextMult?.toFixed(1)}
     </div>
   {/if}
 </div>

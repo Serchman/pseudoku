@@ -5,6 +5,7 @@
   import Sidebar from './lib/components/Sidebar.svelte';
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
+  import SpeedMeter from './lib/components/SpeedMeter.svelte';
 
   function onKeydown(e: KeyboardEvent) {
     if (game.status !== 'playing') return;
@@ -63,6 +64,9 @@
         <div class="board-caption">FILL EVERY CELL · 1–9, NO REPEATS</div>
 
         <div class="board-panel">
+          {#if game.speedBonusOwned && game.status !== 'idle'}
+            <div class="meter-slot"><SpeedMeter /></div>
+          {/if}
           <div class="board-row">
             <div class="board-wrap">
               <Board />
@@ -291,6 +295,11 @@
     display: flex;
     align-items: flex-start;
     gap: 22px;
+  }
+
+  .meter-slot {
+    width: 390px;
+    align-self: flex-start;
   }
 
   .board-wrap {

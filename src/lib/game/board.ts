@@ -50,7 +50,7 @@ export function generatePuzzle(config: BoardConfig, emptyCells: number): Board {
     return false;
   }
 
-  solve(0);
+  if (!solve(0)) throw new Error(`unsolvable board: ${config.id}`);
 
   const board: Board = solution.map((v) => ({ value: v, prefilled: true }));
 

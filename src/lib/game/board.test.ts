@@ -59,6 +59,10 @@ describe('isComplete (default board)', () => {
 });
 
 describe('board6x3', () => {
+  it('isComplete recognizes a full 6×3 solution as complete', () => {
+    expect(isComplete(generatePuzzle(BOARDS.board6x3, 0), BOARDS.board6x3)).toBe(true);
+  });
+
   it('generatePuzzle yields a full solution with 9 distinct values per block and distinct rows', () => {
     const board = generatePuzzle(BOARDS.board6x3, 0);
     expect(board).toHaveLength(18);

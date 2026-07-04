@@ -288,6 +288,11 @@
     cursor: not-allowed;
   }
 
+  .board-chip:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .key-hint {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;

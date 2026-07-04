@@ -20,8 +20,17 @@ export interface DifficultyTier {
 
 export interface BoardConfig {
   id: string;
+  name: string;                           // short display name (e.g. '3×3', '6×3')
+  caption: string;                        // board-area rule text shown above the grid
+  cols: number;                           // cell grid width
+  rows: number;                           // cell grid height
+  blockCols: number;                      // single block width
+  blockRows: number;                      // single block height
+  symbols: number;                        // distinct symbols (9 for both boards)
+  constraints: { rows: boolean; cols: boolean }; // enforce row/col uniqueness across full grid
+  cost: number;                           // pointokus to unlock (0 = free / always owned)
   brackets: Bracket[];
-  tiers: DifficultyTier[]; // ordered; tiers[0] is the free starter, bought sequentially
+  tiers: DifficultyTier[];                // ordered; tiers[0] is the free starter, bought sequentially
 }
 
 // Shaped as "one entry per board type" so more boards slot in later.
@@ -29,6 +38,15 @@ export interface BoardConfig {
 export const BOARDS: Record<string, BoardConfig> = {
   default: {
     id: 'default',
+    name: '3×3',
+    caption: 'FILL EVERY CELL · 1–9, NO REPEATS',
+    cols: 3,
+    rows: 3,
+    blockCols: 3,
+    blockRows: 3,
+    symbols: 9,
+    constraints: { rows: false, cols: false },
+    cost: 0,
     brackets: [
       { maxSec: 2, mult: 8 },
       { maxSec: 3, mult: 5 },
@@ -43,6 +61,32 @@ export const BOARDS: Record<string, BoardConfig> = {
       { id: 'hard', label: 'Hard', emptyCells: 7, mult: 3.5, cost: 200 },
     ],
   },
+  board6x3: {
+    id: 'board6x3',
+    name: '6×3',
+    caption: '1–9 PER BLOCK · NO ROW REPEATS',
+    cols: 6,
+    rows: 3,
+    blockCols: 3,
+    blockRows: 3,
+    symbols: 9,
+    constraints: { rows: true, cols: false },
+    cost: 500,
+    brackets: [
+      { maxSec: 6, mult: 8 },
+      { maxSec: 10, mult: 5 },
+      { maxSec: 15, mult: 3 },
+      { maxSec: 22, mult: 2 },
+      { maxSec: Infinity, mult: 1 },
+    ],
+    tiers: [
+      { id: 'easy', label: 'Easy', emptyCells: 6, mult: 1.0, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 10, mult: 2.5, cost: 150 },
+      { id: 'hard', label: 'Hard', emptyCells: 14, mult: 4.5, cost: 500 },
+    ],
+  },
 };
 
 export const ACTIVE_BOARD: BoardConfig = BOARDS.default;
+
+export const BOARD_ORDER: string[] = ['default', 'board6x3'];

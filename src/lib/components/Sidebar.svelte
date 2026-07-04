@@ -6,22 +6,27 @@
   <div class="boards">
     <div class="boards-head"><span>BOARDS</span></div>
     <div class="boards-row">
-      <button class="board-chip done">
-        <span class="board-num">01</span>
-        <span class="board-state">✓ done</span>
-      </button>
-      <button class="board-chip active">
-        <span class="board-num">02</span>
-        <span class="board-state"><span class="board-dot"></span>active</span>
-      </button>
-      <button class="board-chip ready">
-        <span class="board-num">03</span>
-        <span class="board-state">ready</span>
-      </button>
-      <button class="board-chip locked">
-        <span class="board-lock">🔒</span>
-        <span class="board-cost">500 P</span>
-      </button>
+      {#each game.boards as b (b.id)}
+        <button
+          class="board-chip"
+          class:active={b.active}
+          class:ready={b.owned && !b.active}
+          class:locked={!b.owned}
+          disabled={game.status === 'playing'}
+          onclick={() => b.owned ? game.selectBoard(b.id) : game.buyBoard(b.id)}
+        >
+          {#if b.active}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state"><span class="board-dot"></span>active</span>
+          {:else if b.owned}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state">ready</span>
+          {:else}
+            <span class="board-lock">🔒</span>
+            <span class="board-cost">{b.cost} P</span>
+          {/if}
+        </button>
+      {/each}
     </div>
   </div>
 
@@ -122,19 +127,6 @@
     gap: 3px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
-  }
-
-  .board-chip.done {
-    background: #0c1815;
-    border: 1px solid var(--accent-border);
-  }
-
-  .board-chip.done .board-num {
-    color: var(--accent);
-  }
-
-  .board-chip.done .board-state {
-    color: #3f6b60;
   }
 
   .board-chip.active {

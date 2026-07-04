@@ -61,7 +61,7 @@
   <div class="body">
     {#if game.activeView === 'board'}
       <main class="board-area">
-        <div class="board-caption">FILL EVERY CELL · 1–9, NO REPEATS</div>
+        <div class="board-caption">{game.activeBoard.caption}</div>
 
         <div class="board-panel">
           {#if game.speedBonusOwned && game.status !== 'idle'}

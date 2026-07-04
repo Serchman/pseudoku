@@ -63,3 +63,31 @@ export function loadSelectedTier(boardId: string): string {
 export function saveSelectedTier(boardId: string, id: string): void {
   localStorage.setItem(selectedTierKey(boardId), id);
 }
+
+const ACTIVE_BOARD_KEY = 'sudoku-incremental:active-board';
+
+export function loadActiveBoard(): string {
+  const raw = localStorage.getItem(ACTIVE_BOARD_KEY);
+  return raw === null ? 'default' : raw;
+}
+
+export function saveActiveBoard(id: string): void {
+  localStorage.setItem(ACTIVE_BOARD_KEY, id);
+}
+
+const OWNED_BOARDS_KEY = 'sudoku-incremental:owned-boards';
+
+export function loadOwnedBoards(): string[] {
+  const raw = localStorage.getItem(OWNED_BOARDS_KEY);
+  if (raw === null) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveOwnedBoards(ids: string[]): void {
+  localStorage.setItem(OWNED_BOARDS_KEY, JSON.stringify(ids));
+}

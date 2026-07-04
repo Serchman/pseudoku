@@ -87,6 +87,4 @@ export const BOARDS: Record<string, BoardConfig> = {
   },
 };
 
-export const ACTIVE_BOARD: BoardConfig = BOARDS.default;
-
 export const BOARD_ORDER: string[] = ['default', 'board6x3'];

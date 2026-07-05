@@ -20,6 +20,16 @@ import {
 
 type Status = 'idle' | 'playing' | 'complete';
 type ViewId = 'board' | 'unlocks' | 'settings';
+type LastResult = { points: number; timeMs: number; bracketMult: number; speedApplied: boolean };
+// Per-board play state, preserved across board switches (in-memory, cleared on resetAll).
+type PlayState = {
+  board: Board | null;
+  status: Status;
+  selected: number | null;
+  elapsed: number;
+  lastResult: LastResult | null;
+  startTime: number;
+};
 
 export function createGame() {
   let pointokus = $state(loadPointokus());
@@ -28,9 +38,7 @@ export function createGame() {
   let status = $state<Status>('idle');
   let selected = $state<number | null>(null);
   let elapsed = $state(0);
-  let lastResult = $state<{ points: number; timeMs: number; bracketMult: number; speedApplied: boolean } | null>(
-    null,
-  );
+  let lastResult = $state<LastResult | null>(null);
   let activeView = $state<ViewId>('board');
   let owned = $state<Set<string>>(new Set(loadUnlocks()));
 
@@ -47,6 +55,10 @@ export function createGame() {
 
   let startTime = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
+
+  // Snapshot of each non-active board's play state, so switching boards keeps
+  // (rather than wipes) a board you started or solved. Only resetAll clears it.
+  let boardStates: Record<string, PlayState> = {};
 
   function activeBoard() {
     return BOARDS[activeBoardId];
@@ -145,15 +157,20 @@ export function createGame() {
   }
 
   function selectBoard(id: string) {
-    if (status === 'playing' || !ownedBoards.has(id)) return;
+    if (status === 'playing' || !ownedBoards.has(id) || id === activeBoardId) return;
+    // Preserve the outgoing board's play state, then restore the incoming
+    // board's (or a fresh idle state if it was never played).
+    boardStates[activeBoardId] = { board, status, selected, elapsed, lastResult, startTime };
     activeBoardId = id;
     ownedTiers = new Set(loadOwnedTiers(id));
     selectedTierId = loadSelectedTier(id);
-    board = null;
-    status = 'idle';
-    selected = null;
-    lastResult = null;
-    elapsed = 0;
+    const saved = boardStates[id];
+    board = saved?.board ?? null;
+    status = saved?.status ?? 'idle';
+    selected = saved?.selected ?? null;
+    elapsed = saved?.elapsed ?? 0;
+    lastResult = saved?.lastResult ?? null;
+    startTime = saved?.startTime ?? 0;
     saveActiveBoard(id);
   }
 
@@ -171,6 +188,7 @@ export function createGame() {
     pointokus += pendingPoints;
     savePointokus(pointokus);
     pendingPoints = 0;
+    boardStates = {}; // wipe every board's preserved state
     board = null;
     selected = null;
     status = 'idle';

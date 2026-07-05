@@ -138,7 +138,47 @@ describe('board selection and purchasing', () => {
     expect(game.activeBoard.id).toBe('default');
     game.resetAll(); // stop the timer
   });
+
+  it('preserves a solved board across switches; only resetAll clears it', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '500');
+    const game = createGame();
+
+    game.buyBoard('board6x3'); // owns board6x3 and auto-selects it (default was idle)
+    game.selectBoard('default'); // back to default to solve it
+    game.start();
+    solveDefault(game);
+    expect(game.status).toBe('complete');
+    const solvedValues = game.board!.map((c) => c.value);
+
+    game.selectBoard('board6x3'); // never played
+    expect(game.status).toBe('idle');
+
+    game.selectBoard('default');
+    expect(game.status).toBe('complete'); // state preserved, not wiped by the switch
+    expect(game.board!.map((c) => c.value)).toEqual(solvedValues); // same solved grid
+
+    game.resetAll(); // banks points and clears every board's state
+    expect(game.status).toBe('idle');
+    game.selectBoard('board6x3');
+    game.selectBoard('default');
+    expect(game.status).toBe('idle'); // default's solved state was cleared by resetAll
+  });
 });
+
+// Completes the active default board: it is a single block holding a permutation
+// of 1..9, so the blank cells' values are exactly the numbers missing from the
+// filled cells (any bijective assignment keeps all nine distinct).
+function solveDefault(game: ReturnType<typeof createGame>): void {
+  const b = game.board!;
+  const present = new Set(b.filter((c) => c.value !== null).map((c) => c.value));
+  const missing: number[] = [];
+  for (let v = 1; v <= 9; v++) if (!present.has(v)) missing.push(v);
+  const emptyIdx = b.map((c, i) => (c.value === null ? i : -1)).filter((i) => i >= 0);
+  emptyIdx.forEach((idx, k) => {
+    game.select(idx);
+    game.place(missing[k]);
+  });
+}
 
 function loadJson(key: string): unknown {
   return JSON.parse(localStorage.getItem(key) ?? 'null');

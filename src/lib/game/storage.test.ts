@@ -9,6 +9,10 @@ import {
   saveOwnedTiers,
   loadSelectedTier,
   saveSelectedTier,
+  loadActiveBoard,
+  saveActiveBoard,
+  loadOwnedBoards,
+  saveOwnedBoards,
 } from './storage';
 
 describe('pointokus persistence', () => {
@@ -89,5 +93,45 @@ describe('tier persistence', () => {
     saveSelectedTier('default', 'medium');
     expect(loadSelectedTier('default')).toBe('medium');
     expect(loadSelectedTier('other')).toBe('easy');
+  });
+});
+
+describe('active board persistence', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns 'default' when nothing is saved", () => {
+    expect(loadActiveBoard()).toBe('default');
+  });
+
+  it('round-trips a saved value', () => {
+    saveActiveBoard('board6x3');
+    expect(loadActiveBoard()).toBe('board6x3');
+  });
+});
+
+describe('owned boards persistence', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('returns [] when nothing is saved', () => {
+    expect(loadOwnedBoards()).toEqual([]);
+  });
+
+  it('round-trips a saved value', () => {
+    saveOwnedBoards(['board6x3']);
+    expect(loadOwnedBoards()).toEqual(['board6x3']);
+  });
+
+  it('returns [] when the stored value is malformed', () => {
+    localStorage.setItem('sudoku-incremental:owned-boards', 'not-json');
+    expect(loadOwnedBoards()).toEqual([]);
+  });
+
+  it('returns [] when the stored value is valid JSON but not an array', () => {
+    localStorage.setItem('sudoku-incremental:owned-boards', '{"a":1}');
+    expect(loadOwnedBoards()).toEqual([]);
   });
 });

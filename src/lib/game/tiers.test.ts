@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { getNextTier, getTierById, canBuyTier } from './tiers';
-import { ACTIVE_BOARD } from './config';
+import { BOARDS } from './config';
 
-const tiers = ACTIVE_BOARD.tiers; // easy (0), medium (50), hard (200)
+const tiers = BOARDS.default.tiers; // easy (0), medium (50), hard (200)
 
 describe('getNextTier', () => {
   it('returns the first tier when nothing is owned', () => {

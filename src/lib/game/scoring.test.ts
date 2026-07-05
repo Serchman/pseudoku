@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { computeScore } from './scoring';
-import { ACTIVE_BOARD, FLAT_POINTS } from './config';
+import { BOARDS, FLAT_POINTS } from './config';
 
-const brackets = ACTIVE_BOARD.brackets;
+const brackets = BOARDS.default.brackets;
 
 describe('computeScore', () => {
   it('returns flat points when speed bonus is not owned, regardless of time', () => {

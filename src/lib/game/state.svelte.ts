@@ -1,5 +1,5 @@
 import { generatePuzzle, isComplete, type Board } from './board';
-import { ACTIVE_BOARD, GLOBAL_MULTIPLIER } from './config';
+import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
 import { computeScore } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
 import { getTierById, canBuyTier } from './tiers';
@@ -12,10 +12,24 @@ import {
   saveOwnedTiers,
   loadSelectedTier,
   saveSelectedTier,
+  loadActiveBoard,
+  saveActiveBoard,
+  loadOwnedBoards,
+  saveOwnedBoards,
 } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
 type ViewId = 'board' | 'unlocks' | 'settings';
+type LastResult = { points: number; timeMs: number; bracketMult: number; speedApplied: boolean };
+// Per-board play state, preserved across board switches (in-memory, cleared on resetAll).
+type PlayState = {
+  board: Board | null;
+  status: Status;
+  selected: number | null;
+  elapsed: number;
+  lastResult: LastResult | null;
+  startTime: number;
+};
 
 export function createGame() {
   let pointokus = $state(loadPointokus());
@@ -24,19 +38,34 @@ export function createGame() {
   let status = $state<Status>('idle');
   let selected = $state<number | null>(null);
   let elapsed = $state(0);
-  let lastResult = $state<{ points: number; timeMs: number; bracketMult: number; speedApplied: boolean } | null>(
-    null,
-  );
+  let lastResult = $state<LastResult | null>(null);
   let activeView = $state<ViewId>('board');
   let owned = $state<Set<string>>(new Set(loadUnlocks()));
-  let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(ACTIVE_BOARD.id)));
-  let selectedTierId = $state<string>(loadSelectedTier(ACTIVE_BOARD.id));
+
+  const initialActiveBoardId = loadActiveBoard();
+  let activeBoardId = $state<string>(initialActiveBoardId);
+
+  const freeBoards = Object.values(BOARDS)
+    .filter((b) => b.cost === 0)
+    .map((b) => b.id);
+  let ownedBoards = $state<Set<string>>(new Set([...freeBoards, ...loadOwnedBoards()]));
+
+  let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(initialActiveBoardId)));
+  let selectedTierId = $state<string>(loadSelectedTier(initialActiveBoardId));
 
   let startTime = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
 
+  // Snapshot of each non-active board's play state, so switching boards keeps
+  // (rather than wipes) a board you started or solved. Only resetAll clears it.
+  let boardStates: Record<string, PlayState> = {};
+
+  function activeBoard() {
+    return BOARDS[activeBoardId];
+  }
+
   function selectedTier() {
-    return getTierById(ACTIVE_BOARD.tiers, selectedTierId) ?? ACTIVE_BOARD.tiers[0];
+    return getTierById(activeBoard().tiers, selectedTierId) ?? activeBoard().tiers[0];
   }
 
   function stopTimer() {
@@ -47,7 +76,7 @@ export function createGame() {
   }
 
   function start() {
-    board = generatePuzzle(selectedTier().emptyCells);
+    board = generatePuzzle(activeBoard(), selectedTier().emptyCells);
     selected = null;
     lastResult = null;
     elapsed = 0;
@@ -79,11 +108,11 @@ export function createGame() {
   }
 
   function checkWin() {
-    if (board === null || !isComplete(board)) return;
+    if (board === null || !isComplete(board, activeBoard())) return;
     stopTimer();
     const timeMs = performance.now() - startTime;
     elapsed = timeMs;
-    const result = computeScore(timeMs, ACTIVE_BOARD.brackets, {
+    const result = computeScore(timeMs, activeBoard().brackets, {
       speedBonusOwned: owned.has('speed-bonus'),
       globalMultiplier: GLOBAL_MULTIPLIER,
       difficultyMult: selectedTier().mult,
@@ -112,19 +141,46 @@ export function createGame() {
   }
 
   function buyTier(id: string) {
-    if (!canBuyTier(id, pointokus, ownedTiers, ACTIVE_BOARD.tiers)) return;
-    const t = getTierById(ACTIVE_BOARD.tiers, id)!;
+    if (!canBuyTier(id, pointokus, ownedTiers, activeBoard().tiers)) return;
+    const t = getTierById(activeBoard().tiers, id)!;
     pointokus -= t.cost;
     ownedTiers = new Set([...ownedTiers, id]); // reassign so the $state Set triggers reactivity
     savePointokus(pointokus);
-    saveOwnedTiers(ACTIVE_BOARD.id, [...ownedTiers]);
+    saveOwnedTiers(activeBoard().id, [...ownedTiers]);
   }
 
   function selectTier(id: string) {
     if (status === 'playing') return;   // can't switch difficulty mid-solve
     if (!ownedTiers.has(id)) return;    // only owned tiers are selectable
     selectedTierId = id;
-    saveSelectedTier(ACTIVE_BOARD.id, id);
+    saveSelectedTier(activeBoard().id, id);
+  }
+
+  function selectBoard(id: string) {
+    if (status === 'playing' || !ownedBoards.has(id) || id === activeBoardId) return;
+    // Preserve the outgoing board's play state, then restore the incoming
+    // board's (or a fresh idle state if it was never played).
+    boardStates[activeBoardId] = { board, status, selected, elapsed, lastResult, startTime };
+    activeBoardId = id;
+    ownedTiers = new Set(loadOwnedTiers(id));
+    selectedTierId = loadSelectedTier(id);
+    const saved = boardStates[id];
+    board = saved?.board ?? null;
+    status = saved?.status ?? 'idle';
+    selected = saved?.selected ?? null;
+    elapsed = saved?.elapsed ?? 0;
+    lastResult = saved?.lastResult ?? null;
+    startTime = saved?.startTime ?? 0;
+    saveActiveBoard(id);
+  }
+
+  function buyBoard(id: string) {
+    if (ownedBoards.has(id) || pointokus < BOARDS[id].cost) return;
+    pointokus -= BOARDS[id].cost;
+    ownedBoards = new Set([...ownedBoards, id]); // reassign so the $state Set triggers reactivity
+    savePointokus(pointokus);
+    saveOwnedBoards([...ownedBoards]);
+    selectBoard(id);
   }
 
   function resetAll() {
@@ -132,6 +188,7 @@ export function createGame() {
     pointokus += pendingPoints;
     savePointokus(pointokus);
     pendingPoints = 0;
+    boardStates = {}; // wipe every board's preserved state
     board = null;
     selected = null;
     status = 'idle';
@@ -188,12 +245,31 @@ export function createGame() {
       return selectedTier();
     },
     get tiers() {
-      return ACTIVE_BOARD.tiers.map((t) => ({
+      return activeBoard().tiers.map((t) => ({
         ...t,
         owned: ownedTiers.has(t.id),
         selected: t.id === selectedTierId,
-        buyable: canBuyTier(t.id, pointokus, ownedTiers, ACTIVE_BOARD.tiers),
+        buyable: canBuyTier(t.id, pointokus, ownedTiers, activeBoard().tiers),
       }));
+    },
+    get activeBoard() {
+      return activeBoard();
+    },
+    get boards() {
+      return BOARD_ORDER.map((id) => {
+        const b = BOARDS[id];
+        // Active board's status is live; other boards' status lives in their snapshot.
+        const boardStatus = id === activeBoardId ? status : boardStates[id]?.status;
+        return {
+          id,
+          name: b.name,
+          cost: b.cost,
+          owned: ownedBoards.has(id),
+          active: id === activeBoardId,
+          done: boardStatus === 'complete',
+          buyable: !ownedBoards.has(id) && pointokus >= b.cost,
+        };
+      });
     },
     start,
     select,
@@ -204,6 +280,8 @@ export function createGame() {
     buyUnlock,
     buyTier,
     selectTier,
+    selectBoard,
+    buyBoard,
   };
 }
 

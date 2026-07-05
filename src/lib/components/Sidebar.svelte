@@ -3,6 +3,39 @@
 </script>
 
 <div class="sidebar-panel">
+  <div class="boards">
+    <div class="boards-head"><span>BOARDS</span></div>
+    <div class="boards-row">
+      {#each game.boards as b (b.id)}
+        <button
+          class="board-chip"
+          class:done={b.done}
+          class:active={b.active && !b.done}
+          class:ready={b.owned && !b.active && !b.done}
+          class:locked={!b.owned}
+          disabled={game.status === 'playing'}
+          onclick={() => b.owned ? game.selectBoard(b.id) : game.buyBoard(b.id)}
+        >
+          {#if !b.owned}
+            <span class="board-lock">🔒</span>
+            <span class="board-cost">{b.cost} P</span>
+          {:else if b.done}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state">✓ done</span>
+          {:else if b.active}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state"><span class="board-dot"></span>active</span>
+          {:else}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state">ready</span>
+          {/if}
+        </button>
+      {/each}
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <div class="unlocks">
     <div class="unlocks-head">
       <span>DIFFICULTY</span>
@@ -53,7 +86,8 @@
     gap: 18px;
   }
 
-  .unlocks-head {
+  .unlocks-head,
+  .boards-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -61,6 +95,116 @@
     font-size: 11px;
     letter-spacing: 2px;
     color: var(--muted-2);
+  }
+
+  .boards-head {
+    margin-bottom: 11px;
+  }
+
+  .boards-row {
+    display: flex;
+    gap: 7px;
+  }
+
+  .board-chip {
+    flex: 1;
+    height: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .board-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .board-state {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+  }
+
+  .board-chip.done {
+    background: #0c1815;
+    border: 1px solid var(--accent-border);
+  }
+
+  .board-chip.done .board-num {
+    color: var(--accent);
+  }
+
+  .board-chip.done .board-state {
+    color: #3f6b60;
+  }
+
+  .board-chip.active {
+    background: var(--accent-fill);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 16px rgba(94, 234, 212, 0.28);
+  }
+
+  .board-chip.active .board-num {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .board-chip.active .board-state {
+    color: var(--accent);
+  }
+
+  .board-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 7px rgba(94, 234, 212, 0.9);
+    animation: pulsedot 2s ease-in-out infinite;
+  }
+
+  .board-chip.ready {
+    background: #12161c;
+    border: 1px solid #2a333f;
+  }
+
+  .board-chip.ready .board-num {
+    color: #9aa7b6;
+  }
+
+  .board-chip.ready .board-state {
+    color: var(--dim);
+  }
+
+  .board-chip.locked {
+    background: #12100a;
+    border: 1px dashed #4a3a1c;
+  }
+
+  .board-lock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .board-cost {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--points);
+    line-height: 1;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
   }
 
   .unlocks-sub {
@@ -157,6 +301,11 @@
   }
 
   .tier-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .board-chip:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }

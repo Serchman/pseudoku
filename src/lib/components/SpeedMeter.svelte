@@ -1,11 +1,10 @@
 <script lang="ts">
   import { game } from '../game/state.svelte';
-  import { ACTIVE_BOARD } from '../game/config';
   import { computeSegments, computeMeterPosition, formatClock, formatCountdown } from '../game/meter';
 
   // Bar geometry never changes for a board — compute it once, not every tick.
-  const { segments, horizonSec } = computeSegments(ACTIVE_BOARD.brackets);
-  const pos = $derived(computeMeterPosition(game.elapsed / 1000, ACTIVE_BOARD.brackets, horizonSec));
+  const { segments, horizonSec } = computeSegments(game.activeBoard.brackets);
+  const pos = $derived(computeMeterPosition(game.elapsed / 1000, game.activeBoard.brackets, horizonSec));
 </script>
 
 <div class="speed-meter">

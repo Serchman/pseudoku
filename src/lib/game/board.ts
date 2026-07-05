@@ -1,4 +1,4 @@
-import { BOARD_SIZE, EMPTY_CELLS } from './config';
+import type { BoardConfig } from './config';
 
 export type Cell = { value: number | null; prefilled: boolean };
 export type Board = Cell[];
@@ -12,24 +12,110 @@ function shuffle<T>(items: T[]): T[] {
   return arr;
 }
 
-export function generatePuzzle(emptyCells: number = EMPTY_CELLS): Board {
-  const numbers = shuffle(
-    Array.from({ length: BOARD_SIZE }, (_, i) => i + 1),
-  );
-  const board: Board = numbers.map((value) => ({ value, prefilled: true }));
+function blockOf(i: number, cols: number, blockCols: number, blockRows: number): number {
+  const row = Math.floor(i / cols);
+  const col = i % cols;
+  const blocksAcross = cols / blockCols;
+  return Math.floor(row / blockRows) * blocksAcross + Math.floor(col / blockCols);
+}
 
-  const indices = shuffle(
-    Array.from({ length: BOARD_SIZE }, (_, i) => i),
-  ).slice(0, emptyCells);
+export function generatePuzzle(config: BoardConfig, emptyCells: number): Board {
+  const { cols, rows, blockCols, blockRows, symbols, constraints } = config;
+  const total = cols * rows;
+  const solution: number[] = new Array(total).fill(0);
 
+  function isValid(pos: number, val: number): boolean {
+    const row = Math.floor(pos / cols);
+    const col = pos % cols;
+    const block = blockOf(pos, cols, blockCols, blockRows);
+    for (let j = 0; j < pos; j++) {
+      const v = solution[j];
+      if (blockOf(j, cols, blockCols, blockRows) === block && v === val) return false;
+      if (constraints.rows && Math.floor(j / cols) === row && v === val) return false;
+      if (constraints.cols && j % cols === col && v === val) return false;
+    }
+    return true;
+  }
+
+  function solve(pos: number): boolean {
+    if (pos === total) return true;
+    const candidates = shuffle(Array.from({ length: symbols }, (_, i) => i + 1));
+    for (const val of candidates) {
+      if (isValid(pos, val)) {
+        solution[pos] = val;
+        if (solve(pos + 1)) return true;
+        solution[pos] = 0;
+      }
+    }
+    return false;
+  }
+
+  if (!solve(0)) throw new Error(`unsolvable board: ${config.id}`);
+
+  const board: Board = solution.map((v) => ({ value: v, prefilled: true }));
+
+  const indices = shuffle(Array.from({ length: total }, (_, i) => i)).slice(0, emptyCells);
   for (const i of indices) {
     board[i] = { value: null, prefilled: false };
   }
+
   return board;
 }
 
-export function isComplete(board: Board): boolean {
-  const values = board.map((c) => c.value);
-  if (values.some((v) => v === null)) return false;
-  return new Set(values).size === BOARD_SIZE;
+export function isComplete(board: Board, config: BoardConfig): boolean {
+  const { cols, rows, blockCols, blockRows, symbols, constraints } = config;
+  const total = cols * rows;
+  const blocksAcross = cols / blockCols;
+  const totalBlocks = (rows / blockRows) * blocksAcross;
+
+  if (board.some((c) => c.value === null)) return false;
+
+  // Each block must contain `symbols` distinct values.
+  for (let b = 0; b < totalBlocks; b++) {
+    const vals = new Set<number>();
+    for (let i = 0; i < total; i++) {
+      if (blockOf(i, cols, blockCols, blockRows) === b) vals.add(board[i].value as number);
+    }
+    if (vals.size !== symbols) return false;
+  }
+
+  // Each row must have distinct values (when constraint is active).
+  if (constraints.rows) {
+    for (let r = 0; r < rows; r++) {
+      const vals = new Set<number>();
+      for (let c = 0; c < cols; c++) {
+        vals.add(board[r * cols + c].value as number);
+      }
+      if (vals.size !== cols) return false;
+    }
+  }
+
+  // Each column must have distinct values (when constraint is active).
+  if (constraints.cols) {
+    for (let c = 0; c < cols; c++) {
+      const vals = new Set<number>();
+      for (let r = 0; r < rows; r++) {
+        vals.add(board[r * cols + c].value as number);
+      }
+      if (vals.size !== rows) return false;
+    }
+  }
+
+  return true;
+}
+
+export function toBlocks(board: Board, config: BoardConfig): { index: number; cell: Cell }[][] {
+  const { cols, rows, blockCols, blockRows } = config;
+  const total = cols * rows;
+  const blocksAcross = cols / blockCols;
+  const totalBlocks = (rows / blockRows) * blocksAcross;
+
+  const blocks: { index: number; cell: Cell }[][] = Array.from({ length: totalBlocks }, () => []);
+
+  for (let i = 0; i < total; i++) {
+    const b = blockOf(i, cols, blockCols, blockRows);
+    blocks[b].push({ index: i, cell: board[i] });
+  }
+
+  return blocks;
 }

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { computeSegments, computeMeterPosition, formatClock, formatCountdown } from './meter';
-import { ACTIVE_BOARD } from './config';
+import { BOARDS } from './config';
 
-const brackets = ACTIVE_BOARD.brackets;
+const brackets = BOARDS.default.brackets;
 const { segments, horizonSec } = computeSegments(brackets);
 const positionAt = (elapsedSec: number) => computeMeterPosition(elapsedSec, brackets, horizonSec);
 

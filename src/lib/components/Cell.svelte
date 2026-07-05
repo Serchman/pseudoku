@@ -23,8 +23,8 @@
 
 <style>
   .cell {
-    width: 116px;
-    height: 116px;
+    width: var(--cell);
+    height: var(--cell);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,7 +32,7 @@
     border: 1px solid var(--border-4);
     border-radius: 5px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 36px;
+    font-size: calc(var(--cell) * 0.31);
     font-weight: 500;
     color: var(--cell-player-numeral);
     padding: 0;
@@ -55,7 +55,7 @@
   .caret {
     display: inline-block;
     width: 4px;
-    height: 38px;
+    height: calc(var(--cell) * 0.33);
     background: var(--accent);
     animation: blink 1.1s steps(1) infinite;
   }

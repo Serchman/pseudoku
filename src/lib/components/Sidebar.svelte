@@ -9,21 +9,25 @@
       {#each game.boards as b (b.id)}
         <button
           class="board-chip"
-          class:active={b.active}
-          class:ready={b.owned && !b.active}
+          class:done={b.done}
+          class:active={b.active && !b.done}
+          class:ready={b.owned && !b.active && !b.done}
           class:locked={!b.owned}
           disabled={game.status === 'playing'}
           onclick={() => b.owned ? game.selectBoard(b.id) : game.buyBoard(b.id)}
         >
-          {#if b.active}
-            <span class="board-num">{b.name}</span>
-            <span class="board-state"><span class="board-dot"></span>active</span>
-          {:else if b.owned}
-            <span class="board-num">{b.name}</span>
-            <span class="board-state">ready</span>
-          {:else}
+          {#if !b.owned}
             <span class="board-lock">🔒</span>
             <span class="board-cost">{b.cost} P</span>
+          {:else if b.done}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state">✓ done</span>
+          {:else if b.active}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state"><span class="board-dot"></span>active</span>
+          {:else}
+            <span class="board-num">{b.name}</span>
+            <span class="board-state">ready</span>
           {/if}
         </button>
       {/each}
@@ -127,6 +131,19 @@
     gap: 3px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
+  }
+
+  .board-chip.done {
+    background: #0c1815;
+    border: 1px solid var(--accent-border);
+  }
+
+  .board-chip.done .board-num {
+    color: var(--accent);
+  }
+
+  .board-chip.done .board-state {
+    color: #3f6b60;
   }
 
   .board-chip.active {

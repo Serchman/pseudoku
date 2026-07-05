@@ -148,10 +148,13 @@ describe('board selection and purchasing', () => {
     game.start();
     solveDefault(game);
     expect(game.status).toBe('complete');
+    expect(game.boards.find((b) => b.id === 'default')!.done).toBe(true); // chip → done
     const solvedValues = game.board!.map((c) => c.value);
 
     game.selectBoard('board6x3'); // never played
     expect(game.status).toBe('idle');
+    expect(game.boards.find((b) => b.id === 'board6x3')!.done).toBe(false);
+    expect(game.boards.find((b) => b.id === 'default')!.done).toBe(true); // stays done
 
     game.selectBoard('default');
     expect(game.status).toBe('complete'); // state preserved, not wiped by the switch
@@ -159,6 +162,7 @@ describe('board selection and purchasing', () => {
 
     game.resetAll(); // banks points and clears every board's state
     expect(game.status).toBe('idle');
+    expect(game.boards.find((b) => b.id === 'default')!.done).toBe(false); // done cleared
     game.selectBoard('board6x3');
     game.selectBoard('default');
     expect(game.status).toBe('idle'); // default's solved state was cleared by resetAll

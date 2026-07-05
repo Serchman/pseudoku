@@ -258,12 +258,15 @@ export function createGame() {
     get boards() {
       return BOARD_ORDER.map((id) => {
         const b = BOARDS[id];
+        // Active board's status is live; other boards' status lives in their snapshot.
+        const boardStatus = id === activeBoardId ? status : boardStates[id]?.status;
         return {
           id,
           name: b.name,
           cost: b.cost,
           owned: ownedBoards.has(id),
           active: id === activeBoardId,
+          done: boardStatus === 'complete',
           buyable: !ownedBoards.has(id) && pointokus >= b.cost,
         };
       });

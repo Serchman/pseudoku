@@ -64,18 +64,20 @@
         <div class="board-caption">{game.activeBoard.caption}</div>
 
         <div class="board-panel">
-          {#if game.speedBonusOwned && game.status !== 'idle'}
-            <div class="meter-slot"><SpeedMeter /></div>
-          {/if}
           <div class="board-row">
-            <div class="board-wrap">
-              <Board />
-              {#if game.status === 'idle'}
-                <div class="start-overlay">
-                  <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
-                  <div class="start-caption">populates locked cells</div>
-                </div>
+            <div class="board-col">
+              {#if game.speedBonusOwned && game.status !== 'idle'}
+                <div class="meter-slot"><SpeedMeter /></div>
               {/if}
+              <div class="board-wrap">
+                <Board />
+                {#if game.status === 'idle'}
+                  <div class="start-overlay">
+                    <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
+                    <div class="start-caption">populates locked cells</div>
+                  </div>
+                {/if}
+              </div>
             </div>
             {#if game.status !== 'idle'}
               <NumberPad />
@@ -297,9 +299,15 @@
     gap: 22px;
   }
 
+  .board-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: fit-content;
+  }
+
   .meter-slot {
-    width: 390px;
-    align-self: flex-start;
+    width: 100%;
   }
 
   .board-wrap {

@@ -4,7 +4,16 @@
   import Cell from './Cell.svelte';
 
   const blocksAcross = $derived(game.activeBoard.cols / game.activeBoard.blockCols);
-  const blocks = $derived(game.board !== null ? toBlocks(game.board, game.activeBoard) : []);
+  // At idle game.board is null; render an empty placeholder board so the grid
+  // still reserves its full size (keeps the start overlay aligned over it).
+  const board = $derived(
+    game.board ??
+      Array.from(
+        { length: game.activeBoard.cols * game.activeBoard.rows },
+        () => ({ value: null, prefilled: false }),
+      ),
+  );
+  const blocks = $derived(toBlocks(board, game.activeBoard));
 </script>
 
 <div

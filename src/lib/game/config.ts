@@ -73,10 +73,10 @@ export const BOARDS: Record<string, BoardConfig> = {
     constraints: { rows: true, cols: false },
     cost: 500,
     brackets: [
-      { maxSec: 6, mult: 8 },
-      { maxSec: 10, mult: 5 },
-      { maxSec: 15, mult: 3 },
-      { maxSec: 22, mult: 2 },
+      { maxSec: 12, mult: 8 },
+      { maxSec: 18, mult: 5 },
+      { maxSec: 25, mult: 3 },
+      { maxSec: 35, mult: 2 },
       { maxSec: Infinity, mult: 1 },
     ],
     tiers: [

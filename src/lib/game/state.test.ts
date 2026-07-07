@@ -246,6 +246,43 @@ describe('conflict tracking', () => {
   });
 });
 
+describe('prestige breakdown', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('is empty for a fresh game', () => {
+    const game = createGame();
+
+    expect(game.prestigeBreakdown).toEqual([]);
+  });
+
+  it('has one entry after solving the active board', () => {
+    const game = createGame();
+
+    game.start();
+    solveDefault(game);
+
+    expect(game.prestigeBreakdown).toHaveLength(1);
+    expect(game.prestigeBreakdown[0].points).toBe(game.pendingPoints);
+    expect(game.prestigeBreakdown[0].id).toBe('default');
+    expect(game.prestigeBreakdown[0].name).toBeTruthy();
+
+    game.resetAll(); // stop the timer
+  });
+
+  it('is cleared by resetAll along with pendingPoints', () => {
+    const game = createGame();
+
+    game.start();
+    solveDefault(game);
+    game.resetAll();
+
+    expect(game.prestigeBreakdown).toEqual([]);
+    expect(game.pendingPoints).toBe(0);
+  });
+});
+
 // Completes the active default board: it is a single block holding a permutation
 // of 1..9, so the blank cells' values are exactly the numbers missing from the
 // filled cells (any bijective assignment keeps all nine distinct).

@@ -153,11 +153,13 @@ describe('findConflicts', () => {
 
   it('detects block (box) duplicates and returns both indices', () => {
     // board6x3: block 0 is indices 0,1,2,6,7,8,12,13,14
+    // 0 = row 0, col 0; 7 = row 1, col 1 — same block, but different row and column,
+    // so this genuinely isolates the sameBlock branch.
     const board = emptyBoard(18);
     board[0] = { value: 3, prefilled: false };
-    board[1] = { value: 3, prefilled: false }; // same block, same row
+    board[7] = { value: 3, prefilled: false }; // same block, different row and column
     const conflicts = findConflicts(board, BOARDS.board6x3);
-    expect(conflicts).toEqual(new Set([0, 1]));
+    expect(conflicts).toEqual(new Set([0, 7]));
   });
 
   it('detects three-way duplicates within a unit and returns all three indices', () => {

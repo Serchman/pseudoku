@@ -82,6 +82,7 @@
     .cell.error,
     .cell.conflict {
       animation: none;
+      box-shadow: none;
     }
   }
 

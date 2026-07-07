@@ -6,6 +6,9 @@
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
+  import PrestigeModal from './lib/components/PrestigeModal.svelte';
+
+  let showPrestige = $state(false);
 
   function onKeydown(e: KeyboardEvent) {
     if (game.status !== 'playing') return;
@@ -34,11 +37,10 @@
       <button
         class="prestige-btn"
         class:active={game.pendingPoints > 0}
-        onclick={() => game.resetAll()}
+        onclick={() => (showPrestige = true)}
       >
         <span class="prestige-text">
-          <span class="prestige-label">↺ RESET ALL BOARDS</span>
-          <span class="prestige-sub">Prestige — wipes every board</span>
+          <span class="prestige-label">↺ PRESTIGE</span>
         </span>
         {#if game.pendingPoints > 0}
           <span class="prestige-divider"></span>
@@ -109,6 +111,15 @@
       <SettingsView />
     {/if}
   </div>
+
+  {#if showPrestige}
+    <PrestigeModal
+      pending={game.pendingPoints}
+      breakdown={game.prestigeBreakdown}
+      onconfirm={() => { game.resetAll(); showPrestige = false; }}
+      oncancel={() => (showPrestige = false)}
+    />
+  {/if}
 </div>
 
 <style>
@@ -204,12 +215,6 @@
     font-size: 9.5px;
     letter-spacing: 2.5px;
     color: var(--accent);
-  }
-
-  .prestige-sub {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 11px;
-    color: var(--muted-2);
   }
 
   .prestige-divider {

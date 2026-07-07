@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generatePuzzle, isComplete, toBlocks, type Board } from './board';
+import { generatePuzzle, isComplete, toBlocks, findConflicts, type Board } from './board';
 import { BOARDS, BOARD_SIZE, EMPTY_CELLS } from './config';
 
 describe('generatePuzzle (default board)', () => {
@@ -110,5 +110,73 @@ describe('board6x3', () => {
     expect(blocks[1]).toHaveLength(9);
     const allIndices = blocks.flat().map(({ index }) => index);
     expect(allIndices.sort((a, b) => a - b)).toEqual(Array.from({ length: 18 }, (_, i) => i));
+  });
+});
+
+describe('findConflicts', () => {
+  function emptyBoard(size: number): Board {
+    return Array(size)
+      .fill(null)
+      .map(() => ({ value: null, prefilled: false }));
+  }
+
+  it('returns empty set when no duplicates exist', () => {
+    const board = emptyBoard(9);
+    board[0] = { value: 1, prefilled: false };
+    board[1] = { value: 2, prefilled: false };
+    board[2] = { value: 3, prefilled: false };
+    expect(findConflicts(board, BOARDS.default)).toEqual(new Set());
+  });
+
+  it('returns empty set for a board full of null cells', () => {
+    const board = emptyBoard(9);
+    expect(findConflicts(board, BOARDS.default)).toEqual(new Set());
+  });
+
+  it('detects row duplicates and returns both indices', () => {
+    // board6x3: 6 cols, 3 rows; row 0 is indices 0-5
+    const board = emptyBoard(18);
+    board[0] = { value: 1, prefilled: false };
+    board[3] = { value: 1, prefilled: false }; // same row, different block
+    const conflicts = findConflicts(board, BOARDS.board6x3);
+    expect(conflicts).toEqual(new Set([0, 3]));
+  });
+
+  it('detects column duplicates and returns both indices', () => {
+    // board6x3: column 0 is indices 0, 6, 12
+    const board = emptyBoard(18);
+    board[0] = { value: 2, prefilled: false };
+    board[6] = { value: 2, prefilled: false }; // same column
+    const conflicts = findConflicts(board, BOARDS.board6x3);
+    expect(conflicts).toEqual(new Set([0, 6]));
+  });
+
+  it('detects block (box) duplicates and returns both indices', () => {
+    // board6x3: block 0 is indices 0,1,2,6,7,8,12,13,14
+    const board = emptyBoard(18);
+    board[0] = { value: 3, prefilled: false };
+    board[1] = { value: 3, prefilled: false }; // same block, same row
+    const conflicts = findConflicts(board, BOARDS.board6x3);
+    expect(conflicts).toEqual(new Set([0, 1]));
+  });
+
+  it('detects three-way duplicates within a unit and returns all three indices', () => {
+    // board6x3: row 0 is indices 0-5
+    const board = emptyBoard(18);
+    board[0] = { value: 4, prefilled: false };
+    board[2] = { value: 4, prefilled: false }; // same row as 0
+    board[4] = { value: 4, prefilled: false }; // same row as 0 and 2
+    const conflicts = findConflicts(board, BOARDS.board6x3);
+    expect(conflicts).toEqual(new Set([0, 2, 4]));
+  });
+
+  it('ignores null cells in conflict detection', () => {
+    // board6x3: row 0 is indices 0-5
+    const board = emptyBoard(18);
+    board[0] = { value: 5, prefilled: false };
+    board[1] = { value: null, prefilled: false }; // null, ignored
+    board[2] = { value: 5, prefilled: false }; // duplicate of 0
+    const conflicts = findConflicts(board, BOARDS.board6x3);
+    expect(conflicts).toEqual(new Set([0, 2]));
   });
 });

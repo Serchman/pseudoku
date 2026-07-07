@@ -35,6 +35,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     padding: 22px 30px;
   }
 
@@ -42,6 +43,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    max-width: 320px;
     margin-bottom: 18px;
   }
 
@@ -63,6 +66,8 @@
     flex-direction: column;
     align-items: center;
     gap: 14px;
+    width: 100%;
+    max-width: 320px;
   }
 
   .card {

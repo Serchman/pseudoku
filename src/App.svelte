@@ -26,7 +26,7 @@
       <span class="wordmark">SUDOKU_INCREMENTAL<span class="accent">_</span></span>
       <span class="version">v0.1</span>
     </div>
-    <div class="header-center">
+    <div class="topbar-center">
       <div class="points-box">
         <span class="points-box-label">POINTS</span>
         <span class="points-box-value">{game.pointokus}</span>
@@ -40,11 +40,13 @@
           <span class="prestige-label">↺ RESET ALL BOARDS</span>
           <span class="prestige-sub">Prestige — wipes every board</span>
         </span>
-        <span class="prestige-divider"></span>
-        <span class="prestige-gain">
-          <span class="prestige-gain-value">+{game.pendingPoints}</span>
-          <span class="prestige-gain-label">POINTS</span>
-        </span>
+        {#if game.pendingPoints > 0}
+          <span class="prestige-divider"></span>
+          <span class="prestige-gain">
+            <span class="prestige-gain-value">+{game.pendingPoints}</span>
+            <span class="prestige-gain-label">POINTS</span>
+          </span>
+        {/if}
       </button>
     </div>
   </div>
@@ -64,20 +66,18 @@
         <div class="board-caption">{game.activeBoard.caption}</div>
 
         <div class="board-panel">
-          <div class="board-row">
-            <div class="board-col">
-              {#if game.speedBonusOwned && game.status !== 'idle'}
-                <div class="meter-slot"><SpeedMeter /></div>
+          <div class="board-col">
+            {#if game.speedBonusOwned && game.status !== 'idle'}
+              <div class="meter-slot"><SpeedMeter /></div>
+            {/if}
+            <div class="board-wrap">
+              <Board />
+              {#if game.status === 'idle'}
+                <div class="start-overlay">
+                  <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
+                  <div class="start-caption">populates locked cells</div>
+                </div>
               {/if}
-              <div class="board-wrap">
-                <Board />
-                {#if game.status === 'idle'}
-                  <div class="start-overlay">
-                    <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
-                    <div class="start-caption">populates locked cells</div>
-                  </div>
-                {/if}
-              </div>
             </div>
             {#if game.status !== 'idle'}
               <NumberPad />
@@ -144,11 +144,7 @@
     color: var(--dim);
   }
 
-  .header-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+  .topbar-center {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -158,24 +154,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    justify-content: center;
+    gap: 5px;
     background: var(--panel-2);
     border: 1px solid var(--border-2);
     border-radius: 12px;
-    padding: 8px 24px;
+    padding: 9px 30px;
   }
 
   .points-box-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    letter-spacing: 3px;
+    font-size: 10px;
+    letter-spacing: 3.5px;
     color: var(--muted-2);
   }
 
   .points-box-value {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 27px;
-    font-weight: 600;
+    font-size: 40px;
+    font-weight: 700;
     color: var(--points);
     line-height: 1;
   }
@@ -245,6 +242,7 @@
 
   .tabs {
     display: flex;
+    justify-content: center;
     gap: 4px;
     padding: 0 22px;
     border-bottom: 1px solid var(--border);
@@ -293,17 +291,10 @@
     gap: 16px;
   }
 
-  .board-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 22px;
-  }
-
   .board-col {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    justify-items: center;
     gap: 16px;
-    width: fit-content;
   }
 
   .meter-slot {

@@ -4,14 +4,24 @@
   let {
     cell,
     selected,
+    error = false,
+    conflict = false,
     onSelect,
-  }: { cell: Cell; selected: boolean; onSelect: () => void } = $props();
+  }: {
+    cell: Cell;
+    selected: boolean;
+    error?: boolean;
+    conflict?: boolean;
+    onSelect: () => void;
+  } = $props();
 </script>
 
 <button
   class="cell"
   class:selected
   class:prefilled={cell.prefilled}
+  class:error
+  class:conflict
   disabled={cell.prefilled}
   onclick={onSelect}
 >
@@ -50,6 +60,29 @@
     background: var(--cell-selected-fill);
     border: 2px solid var(--accent);
     box-shadow: var(--cell-selected-glow);
+  }
+
+  .cell.conflict {
+    color: var(--cell-conflict-numeral);
+    border: 1px solid var(--cell-conflict-border);
+    animation: conflictpulse 1.6s ease-in-out infinite;
+  }
+
+  .cell.error {
+    background: var(--cell-error-fill);
+    border: 2px solid var(--cell-error-border);
+    color: var(--cell-error-numeral);
+    font-weight: 700;
+    animation:
+      errshake 0.4s ease-in-out,
+      errglow 1.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell.error,
+    .cell.conflict {
+      animation: none;
+    }
   }
 
   .caret {

@@ -38,6 +38,11 @@
   --cell-player-numeral: #5eead4;
   --cell-selected-fill: #0d1f1b;
   --cell-selected-glow: 0 0 18px rgba(94, 234, 212, 0.35);
+  --cell-error-fill: #1f0e11;
+  --cell-error-border: #ff606e;
+  --cell-error-numeral: #ff6b76;
+  --cell-conflict-numeral: #ef8a90;
+  --cell-conflict-border: #5a2731;
 
   font-family: 'Space Grotesk', sans-serif;
 }
@@ -87,6 +92,48 @@ body {
     box-shadow:
       0 0 0 1px rgba(94, 234, 212, 1),
       0 0 60px rgba(94, 234, 212, 0.55);
+  }
+}
+
+@keyframes errshake {
+  0%,
+  13%,
+  100% {
+    transform: translateX(0);
+  }
+  3% {
+    transform: translateX(-5px);
+  }
+  6% {
+    transform: translateX(5px);
+  }
+  9% {
+    transform: translateX(-3px);
+  }
+  11% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes errglow {
+  0%,
+  100% {
+    box-shadow: 0 0 16px rgba(255, 96, 110, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255, 96, 110, 0.55);
+  }
+}
+
+@keyframes conflictpulse {
+  0%,
+  100% {
+    border-color: #5a2731;
+    background: #180d10;
+  }
+  50% {
+    border-color: #8a3843;
+    background: #22101499;
   }
 }
 

@@ -14,6 +14,7 @@
       ),
   );
   const blocks = $derived(toBlocks(board, game.activeBoard));
+  const conflicts = $derived(game.conflicts);
 </script>
 
 <div
@@ -27,7 +28,13 @@
       style="grid-template-columns: repeat({game.activeBoard.blockCols}, var(--cell)); grid-template-rows: repeat({game.activeBoard.blockRows}, var(--cell))"
     >
       {#each block as { index, cell }}
-        <Cell {cell} selected={game.selected === index} onSelect={() => game.select(index)} />
+        <Cell
+          {cell}
+          selected={game.selected === index}
+          error={game.lastEntered === index && conflicts.has(index)}
+          conflict={conflicts.has(index) && game.lastEntered !== index}
+          onSelect={() => game.select(index)}
+        />
       {/each}
     </div>
   {/each}

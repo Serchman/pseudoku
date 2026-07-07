@@ -1,4 +1,4 @@
-import { generatePuzzle, isComplete, type Board } from './board';
+import { generatePuzzle, isComplete, findConflicts, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
 import { computeScore } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
@@ -29,6 +29,7 @@ type PlayState = {
   elapsed: number;
   lastResult: LastResult | null;
   startTime: number;
+  lastEntered: number | null;
 };
 
 export function createGame() {
@@ -37,6 +38,7 @@ export function createGame() {
   let board = $state<Board | null>(null);
   let status = $state<Status>('idle');
   let selected = $state<number | null>(null);
+  let lastEntered = $state<number | null>(null);
   let elapsed = $state(0);
   let lastResult = $state<LastResult | null>(null);
   let activeView = $state<ViewId>('board');
@@ -78,6 +80,7 @@ export function createGame() {
   function start() {
     board = generatePuzzle(activeBoard(), selectedTier().emptyCells);
     selected = null;
+    lastEntered = null;
     lastResult = null;
     elapsed = 0;
     status = 'playing';
@@ -98,6 +101,7 @@ export function createGame() {
     if (status !== 'playing' || board === null || selected === null) return;
     if (board[selected].prefilled) return;
     board[selected] = { value, prefilled: false };
+    lastEntered = selected;
     checkWin();
   }
 
@@ -105,6 +109,7 @@ export function createGame() {
     if (status !== 'playing' || board === null || selected === null) return;
     if (board[selected].prefilled) return;
     board[selected] = { value: null, prefilled: false };
+    lastEntered = null;
   }
 
   function checkWin() {
@@ -160,7 +165,15 @@ export function createGame() {
     if (status === 'playing' || !ownedBoards.has(id) || id === activeBoardId) return;
     // Preserve the outgoing board's play state, then restore the incoming
     // board's (or a fresh idle state if it was never played).
-    boardStates[activeBoardId] = { board, status, selected, elapsed, lastResult, startTime };
+    boardStates[activeBoardId] = {
+      board,
+      status,
+      selected,
+      elapsed,
+      lastResult,
+      startTime,
+      lastEntered,
+    };
     activeBoardId = id;
     ownedTiers = new Set(loadOwnedTiers(id));
     selectedTierId = loadSelectedTier(id);
@@ -171,6 +184,7 @@ export function createGame() {
     elapsed = saved?.elapsed ?? 0;
     lastResult = saved?.lastResult ?? null;
     startTime = saved?.startTime ?? 0;
+    lastEntered = saved?.lastEntered ?? null;
     saveActiveBoard(id);
   }
 
@@ -191,6 +205,7 @@ export function createGame() {
     boardStates = {}; // wipe every board's preserved state
     board = null;
     selected = null;
+    lastEntered = null;
     status = 'idle';
     elapsed = 0;
     lastResult = null;
@@ -211,6 +226,12 @@ export function createGame() {
     },
     get selected() {
       return selected;
+    },
+    get conflicts(): Set<number> {
+      return board && status === 'playing' ? findConflicts(board, activeBoard()) : new Set();
+    },
+    get lastEntered() {
+      return lastEntered;
     },
     get elapsed() {
       return elapsed;

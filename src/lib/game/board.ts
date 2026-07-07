@@ -119,3 +119,21 @@ export function toBlocks(board: Board, config: BoardConfig): { index: number; ce
 
   return blocks;
 }
+
+export function findConflicts(board: Board, config: BoardConfig): Set<number> {
+  const { cols, blockCols, blockRows } = config;
+  const conflicts = new Set<number>();
+  for (let i = 0; i < board.length; i++) {
+    const v = board[i].value;
+    if (v === null) continue;
+    for (let j = i + 1; j < board.length; j++) {
+      if (board[j].value !== v) continue;
+      const sameRow = Math.floor(i / cols) === Math.floor(j / cols);
+      const sameCol = i % cols === j % cols;
+      const sameBlock =
+        blockOf(i, cols, blockCols, blockRows) === blockOf(j, cols, blockCols, blockRows);
+      if (sameRow || sameCol || sameBlock) { conflicts.add(i); conflicts.add(j); }
+    }
+  }
+  return conflicts;
+}

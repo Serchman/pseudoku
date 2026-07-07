@@ -218,6 +218,15 @@ export function createGame() {
     get pendingPoints() {
       return pendingPoints;
     },
+    get prestigeBreakdown(): { id: string; name: string; points: number }[] {
+      return BOARD_ORDER.flatMap((id) => {
+        const isActive = id === activeBoardId;
+        const st = isActive ? status : boardStates[id]?.status;
+        const res = isActive ? lastResult : boardStates[id]?.lastResult;
+        if (st !== 'complete' || !res) return [];
+        return [{ id, name: BOARDS[id].name, points: res.points }];
+      });
+    },
     get board() {
       return board;
     },

@@ -5,7 +5,7 @@
 </script>
 
 <div class="numberpad">
-  <div class="grid">
+  <div class="keys">
     {#each numbers as n}
       <button onclick={() => game.place(n)}>{n}</button>
     {/each}
@@ -15,17 +15,22 @@
 
 <style>
   .numberpad {
-    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 50px);
-    grid-template-rows: repeat(3, 50px);
-    gap: 7px;
+  .keys {
+    display: flex;
+    gap: 6px;
   }
 
-  .grid button {
+  .keys button {
+    flex: 1;
+    aspect-ratio: 1;
+    min-width: 0;
+    max-height: 56px;
     background: #11161d;
     border: 1px solid var(--border-4);
     border-radius: 7px;
@@ -40,9 +45,8 @@
   }
 
   .erase {
-    margin-top: 7px;
     width: 100%;
-    height: 38px;
+    height: 40px;
     background: var(--panel-3);
     border: 1px solid var(--border-4);
     border-radius: 7px;

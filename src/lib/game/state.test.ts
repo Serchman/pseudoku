@@ -169,6 +169,83 @@ describe('board selection and purchasing', () => {
   });
 });
 
+describe('conflict tracking', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('conflicts is empty while idle', () => {
+    const game = createGame();
+
+    expect(game.conflicts.size).toBe(0);
+  });
+
+  it('conflicts is empty once the board is complete', () => {
+    const game = createGame();
+
+    game.start();
+    solveDefault(game);
+
+    expect(game.status).toBe('complete');
+    expect(game.conflicts.size).toBe(0);
+  });
+
+  it('placing a duplicate value while playing populates conflicts and sets lastEntered', () => {
+    const game = createGame();
+    game.start();
+
+    const emptyIdx = game.board!.findIndex((c) => c.value === null);
+    const dupValue = game.board!.find((c) => c.value !== null)!.value!;
+    game.select(emptyIdx);
+    game.place(dupValue);
+
+    expect(game.conflicts.size).toBeGreaterThan(0);
+    expect(game.conflicts.has(emptyIdx)).toBe(true);
+    expect(game.lastEntered).toBe(emptyIdx);
+
+    game.resetAll(); // stop the timer
+  });
+
+  it('clear() resets lastEntered to null', () => {
+    const game = createGame();
+    game.start();
+
+    const emptyIdx = game.board!.findIndex((c) => c.value === null);
+    const dupValue = game.board!.find((c) => c.value !== null)!.value!;
+    game.select(emptyIdx);
+    game.place(dupValue);
+    expect(game.lastEntered).toBe(emptyIdx);
+
+    game.select(emptyIdx);
+    game.clear();
+
+    expect(game.lastEntered).toBe(null);
+    game.resetAll(); // stop the timer
+  });
+
+  it('lastEntered survives a selectBoard round-trip', () => {
+    // selectBoard is blocked mid-solve, so exercise the round-trip via a
+    // completed board (same pattern as "preserves a solved board" above).
+    localStorage.setItem('sudoku-incremental:pointokus', '600');
+    const game = createGame();
+    game.buyBoard('board6x3'); // owns board6x3 and auto-selects it (default was idle)
+    game.selectBoard('default');
+    game.start();
+    solveDefault(game);
+    expect(game.status).toBe('complete');
+    const entered = game.lastEntered;
+    expect(entered).not.toBe(null);
+
+    game.selectBoard('board6x3');
+    expect(game.lastEntered).toBe(null); // board6x3 was never played
+
+    game.selectBoard('default');
+    expect(game.lastEntered).toBe(entered); // restored from snapshot
+
+    game.resetAll(); // stop the timer
+  });
+});
+
 // Completes the active default board: it is a single block holding a permutation
 // of 1..9, so the blank cells' values are exactly the numbers missing from the
 // filled cells (any bijective assignment keeps all nine distinct).

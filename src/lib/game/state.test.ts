@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGame } from './state.svelte';
+import { firstEmptyIndex, nextEmptyIndex } from './board';
 
 describe('difficulty tiers in game state', () => {
   beforeEach(() => {
@@ -243,6 +244,64 @@ describe('conflict tracking', () => {
     expect(game.lastEntered).toBe(entered); // restored from snapshot
 
     game.resetAll(); // stop the timer
+  });
+});
+
+describe('cursor auto-advance', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('start() auto-selects the first empty cell', () => {
+    const game = createGame();
+
+    game.start();
+
+    expect(game.selected).not.toBeNull();
+    expect(game.selected).toBe(firstEmptyIndex(game.board!));
+
+    game.resetAll();
+  });
+
+  it('a non-conflicting place() advances the cursor to the next empty cell', () => {
+    const game = createGame();
+    game.start();
+
+    const prevSelected = game.selected!;
+    const present = new Set(game.board!.filter((c) => c.value !== null).map((c) => c.value));
+    const missing = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((v) => !present.has(v))!;
+    const expectedNext = nextEmptyIndex(game.board!, prevSelected);
+
+    game.place(missing);
+
+    expect(game.selected).toBe(expectedNext);
+
+    game.resetAll();
+  });
+
+  it('a conflicting place() leaves the cursor unchanged', () => {
+    const game = createGame();
+    game.start();
+
+    const selectedBefore = game.selected!;
+    const dupValue = game.board!.find((c) => c.value !== null)!.value!;
+
+    game.place(dupValue);
+
+    expect(game.selected).toBe(selectedBefore);
+
+    game.resetAll();
+  });
+
+  it('solving the whole board via solveDefault still reaches complete', () => {
+    const game = createGame();
+    game.start();
+
+    expect(() => solveDefault(game)).not.toThrow();
+
+    expect(game.status).toBe('complete');
+
+    game.resetAll();
   });
 });
 

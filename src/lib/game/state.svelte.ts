@@ -1,4 +1,4 @@
-import { generatePuzzle, isComplete, findConflicts, type Board } from './board';
+import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, conflictsAt, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
 import { computeScore } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
@@ -79,7 +79,7 @@ export function createGame() {
 
   function start() {
     board = generatePuzzle(activeBoard(), selectedTier().emptyCells);
-    selected = null;
+    selected = firstEmptyIndex(board);
     lastEntered = null;
     lastResult = null;
     elapsed = 0;
@@ -103,6 +103,11 @@ export function createGame() {
     board[selected] = { value, prefilled: false };
     lastEntered = selected;
     checkWin();
+    if (status !== 'playing') return; // board just solved — nothing to advance to
+    if (!conflictsAt(board, selected, activeBoard())) {
+      const next = nextEmptyIndex(board, selected);
+      if (next !== null) selected = next;
+    }
   }
 
   function clear() {

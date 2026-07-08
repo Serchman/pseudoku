@@ -120,19 +120,42 @@ export function toBlocks(board: Board, config: BoardConfig): { index: number; ce
   return blocks;
 }
 
-export function findConflicts(board: Board, config: BoardConfig): Set<number> {
+// First editable, empty cell in row-major order, or null if the board is full.
+export function firstEmptyIndex(board: Board): number | null {
+  for (let i = 0; i < board.length; i++) if (board[i].value === null) return i;
+  return null;
+}
+
+// Next empty cell strictly after `from` in row-major order, wrapping around
+// to the start. Null if no empty cell remains.
+export function nextEmptyIndex(board: Board, from: number): number | null {
+  const n = board.length;
+  for (let step = 1; step <= n; step++) {
+    const i = (from + step) % n;
+    if (board[i].value === null) return i;
+  }
+  return null;
+}
+
+// Two cells are peers when they share a row, column, or block — the units a
+// value must be unique within. Single source of truth for both conflict checks.
+function arePeers(a: number, b: number, config: BoardConfig): boolean {
   const { cols, blockCols, blockRows } = config;
+  const sameRow = Math.floor(a / cols) === Math.floor(b / cols);
+  const sameCol = a % cols === b % cols;
+  const sameBlock =
+    blockOf(a, cols, blockCols, blockRows) === blockOf(b, cols, blockCols, blockRows);
+  return sameRow || sameCol || sameBlock;
+}
+
+export function findConflicts(board: Board, config: BoardConfig): Set<number> {
   const conflicts = new Set<number>();
   for (let i = 0; i < board.length; i++) {
     const v = board[i].value;
     if (v === null) continue;
     for (let j = i + 1; j < board.length; j++) {
       if (board[j].value !== v) continue;
-      const sameRow = Math.floor(i / cols) === Math.floor(j / cols);
-      const sameCol = i % cols === j % cols;
-      const sameBlock =
-        blockOf(i, cols, blockCols, blockRows) === blockOf(j, cols, blockCols, blockRows);
-      if (sameRow || sameCol || sameBlock) { conflicts.add(i); conflicts.add(j); }
+      if (arePeers(i, j, config)) { conflicts.add(i); conflicts.add(j); }
     }
   }
   return conflicts;

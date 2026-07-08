@@ -68,3 +68,44 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+## Project: Sudoku Incremental
+
+**Stack:** Svelte 5 (runes: `$state`, `$props`, etc.) + TypeScript + Vite. Tests: Vitest.
+
+**Verify (all three must pass before a change is done):**
+
+```
+npm run check   # svelte-check — type + Svelte diagnostics
+npm test        # vitest run
+npm run build   # vite build
+```
+
+`npm run test:watch` for iterating; `npm run dev` to serve.
+
+**Layout:**
+- `src/lib/game/` — game logic and state. State lives in `state.svelte.ts` via
+  `createGame()`, which returns an object of getters + action methods; `game` is the
+  shared singleton. Pure helpers (`board.ts`, `scoring.ts`, etc.) sit alongside.
+- `src/lib/components/` — Svelte components. `src/App.svelte` is the shell.
+- `src/app.css` — global CSS: design tokens (`:root { --accent, --points, --panel*,
+  --border*, --muted-*, --dim, ... }`) and `@keyframes`.
+
+**Component conventions:**
+- Scoped `<style>` per component. Reference the `app.css` tokens rather than hardcoding
+  hex where a token lines up.
+- Every clickable element is a `<button>`, never a `<div onclick>` (keyboard-accessible
+  by default; matches `Sidebar.svelte`, `NumberPad.svelte`, `Cell.svelte`).
+- Any animation gets a `@media (prefers-reduced-motion: reduce) { animation: none; }`
+  guard — see `Cell.svelte` for the established pattern.
+- Props via `$props()` with an inline type; callbacks passed as `on*` props (e.g.
+  `onconfirm`, `oncancel`), not `createEventDispatcher`.
+
+**Tests:**
+- Game logic is unit-tested; components are **not** — there is no component-render
+  harness, and adding one is out of scope unless explicitly asked.
+- State tests use `// @vitest-environment jsdom`, `createGame()` + `localStorage`, and a
+  `beforeEach(() => localStorage.clear())`. Reuse the existing `solveDefault(game)` helper
+  in `state.test.ts` to drive a board to `complete`; don't write a new solver.

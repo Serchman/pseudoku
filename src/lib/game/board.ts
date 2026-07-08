@@ -137,37 +137,38 @@ export function nextEmptyIndex(board: Board, from: number): number | null {
   return null;
 }
 
+// Two cells are peers when they share a row, column, or block — the units a
+// value must be unique within. Single source of truth for both conflict checks.
+function arePeers(a: number, b: number, config: BoardConfig): boolean {
+  const { cols, blockCols, blockRows } = config;
+  const sameRow = Math.floor(a / cols) === Math.floor(b / cols);
+  const sameCol = a % cols === b % cols;
+  const sameBlock =
+    blockOf(a, cols, blockCols, blockRows) === blockOf(b, cols, blockCols, blockRows);
+  return sameRow || sameCol || sameBlock;
+}
+
 // True if the value at `index` duplicates a peer in the same row, col, or block.
 // Targeted O(n) check — mirrors findConflicts' comparison so behavior matches
 // the conflict highlight exactly.
 export function conflictsAt(board: Board, index: number, config: BoardConfig): boolean {
-  const { cols, blockCols, blockRows } = config;
   const v = board[index].value;
   if (v === null) return false;
   for (let j = 0; j < board.length; j++) {
     if (j === index || board[j].value !== v) continue;
-    const sameRow = Math.floor(index / cols) === Math.floor(j / cols);
-    const sameCol = index % cols === j % cols;
-    const sameBlock =
-      blockOf(index, cols, blockCols, blockRows) === blockOf(j, cols, blockCols, blockRows);
-    if (sameRow || sameCol || sameBlock) return true;
+    if (arePeers(index, j, config)) return true;
   }
   return false;
 }
 
 export function findConflicts(board: Board, config: BoardConfig): Set<number> {
-  const { cols, blockCols, blockRows } = config;
   const conflicts = new Set<number>();
   for (let i = 0; i < board.length; i++) {
     const v = board[i].value;
     if (v === null) continue;
     for (let j = i + 1; j < board.length; j++) {
       if (board[j].value !== v) continue;
-      const sameRow = Math.floor(i / cols) === Math.floor(j / cols);
-      const sameCol = i % cols === j % cols;
-      const sameBlock =
-        blockOf(i, cols, blockCols, blockRows) === blockOf(j, cols, blockCols, blockRows);
-      if (sameRow || sameCol || sameBlock) { conflicts.add(i); conflicts.add(j); }
+      if (arePeers(i, j, config)) { conflicts.add(i); conflicts.add(j); }
     }
   }
   return conflicts;

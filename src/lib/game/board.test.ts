@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { generatePuzzle, isComplete, toBlocks, findConflicts, type Board } from './board';
+import {
+  generatePuzzle,
+  isComplete,
+  toBlocks,
+  findConflicts,
+  firstEmptyIndex,
+  nextEmptyIndex,
+  conflictsAt,
+  type Board,
+} from './board';
 import { BOARDS, BOARD_SIZE, EMPTY_CELLS } from './config';
 
 describe('generatePuzzle (default board)', () => {
@@ -180,5 +189,96 @@ describe('findConflicts', () => {
     board[2] = { value: 5, prefilled: false }; // duplicate of 0
     const conflicts = findConflicts(board, BOARDS.board6x3);
     expect(conflicts).toEqual(new Set([0, 2]));
+  });
+});
+
+describe('firstEmptyIndex', () => {
+  it('returns the first value === null index', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
+    board[0] = { value: null, prefilled: false };
+    board[3] = { value: null, prefilled: false };
+    expect(firstEmptyIndex(board)).toBe(0);
+  });
+
+  it('returns null for a full board', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
+    expect(firstEmptyIndex(board)).toBeNull();
+  });
+});
+
+describe('nextEmptyIndex', () => {
+  it('returns the next empty index after `from`', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
+    board[5] = { value: null, prefilled: false };
+    expect(nextEmptyIndex(board, 2)).toBe(5);
+  });
+
+  it('skips over filled cells, including given (prefilled) cells', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({
+      value: i + 1,
+      prefilled: i % 2 === 0,
+    }));
+    board[6] = { value: null, prefilled: false };
+    expect(nextEmptyIndex(board, 3)).toBe(6);
+  });
+
+  it('wraps around to an earlier gap when starting past the last empty cell', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
+    board[1] = { value: null, prefilled: false };
+    expect(nextEmptyIndex(board, 7)).toBe(1);
+  });
+
+  it('returns null when no empty cell remains', () => {
+    const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
+    expect(nextEmptyIndex(board, 3)).toBeNull();
+  });
+});
+
+describe('conflictsAt', () => {
+  function emptyBoard(size: number): Board {
+    return Array(size)
+      .fill(null)
+      .map(() => ({ value: null, prefilled: false }));
+  }
+
+  it('is true for a row duplicate', () => {
+    // board6x3: row 0 is indices 0-5
+    const board = emptyBoard(18);
+    board[0] = { value: 1, prefilled: false };
+    board[3] = { value: 1, prefilled: false }; // same row, different block
+    expect(conflictsAt(board, 0, BOARDS.board6x3)).toBe(true);
+    expect(conflictsAt(board, 3, BOARDS.board6x3)).toBe(true);
+  });
+
+  it('is true for a column duplicate', () => {
+    // board6x3: column 0 is indices 0, 6, 12
+    const board = emptyBoard(18);
+    board[0] = { value: 2, prefilled: false };
+    board[6] = { value: 2, prefilled: false }; // same column
+    expect(conflictsAt(board, 0, BOARDS.board6x3)).toBe(true);
+    expect(conflictsAt(board, 6, BOARDS.board6x3)).toBe(true);
+  });
+
+  it('is true for a block duplicate', () => {
+    // board6x3: block 0 is indices 0,1,2,6,7,8,12,13,14
+    const board = emptyBoard(18);
+    board[0] = { value: 3, prefilled: false };
+    board[7] = { value: 3, prefilled: false }; // same block, different row and column
+    expect(conflictsAt(board, 0, BOARDS.board6x3)).toBe(true);
+    expect(conflictsAt(board, 7, BOARDS.board6x3)).toBe(true);
+  });
+
+  it('is false for a clean placement with no duplicates', () => {
+    const board = emptyBoard(18);
+    board[0] = { value: 1, prefilled: false };
+    board[1] = { value: 2, prefilled: false };
+    expect(conflictsAt(board, 0, BOARDS.board6x3)).toBe(false);
+  });
+
+  it('is false when the cell at index has value === null', () => {
+    const board = emptyBoard(18);
+    board[0] = { value: 1, prefilled: false };
+    board[3] = { value: 1, prefilled: false };
+    expect(conflictsAt(board, 1, BOARDS.board6x3)).toBe(false);
   });
 });

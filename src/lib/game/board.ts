@@ -120,6 +120,41 @@ export function toBlocks(board: Board, config: BoardConfig): { index: number; ce
   return blocks;
 }
 
+// First editable, empty cell in row-major order, or null if the board is full.
+export function firstEmptyIndex(board: Board): number | null {
+  for (let i = 0; i < board.length; i++) if (board[i].value === null) return i;
+  return null;
+}
+
+// Next empty cell strictly after `from` in row-major order, wrapping around
+// to the start. Null if no empty cell remains.
+export function nextEmptyIndex(board: Board, from: number): number | null {
+  const n = board.length;
+  for (let step = 1; step <= n; step++) {
+    const i = (from + step) % n;
+    if (board[i].value === null) return i;
+  }
+  return null;
+}
+
+// True if the value at `index` duplicates a peer in the same row, col, or block.
+// Targeted O(n) check — mirrors findConflicts' comparison so behavior matches
+// the conflict highlight exactly.
+export function conflictsAt(board: Board, index: number, config: BoardConfig): boolean {
+  const { cols, blockCols, blockRows } = config;
+  const v = board[index].value;
+  if (v === null) return false;
+  for (let j = 0; j < board.length; j++) {
+    if (j === index || board[j].value !== v) continue;
+    const sameRow = Math.floor(index / cols) === Math.floor(j / cols);
+    const sameCol = index % cols === j % cols;
+    const sameBlock =
+      blockOf(index, cols, blockCols, blockRows) === blockOf(j, cols, blockCols, blockRows);
+    if (sameRow || sameCol || sameBlock) return true;
+  }
+  return false;
+}
+
 export function findConflicts(board: Board, config: BoardConfig): Set<number> {
   const { cols, blockCols, blockRows } = config;
   const conflicts = new Set<number>();

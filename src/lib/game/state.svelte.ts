@@ -1,4 +1,4 @@
-import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, conflictsAt, type Board } from './board';
+import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
 import { computeScore } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
@@ -70,6 +70,12 @@ export function createGame() {
     return getTierById(activeBoard().tiers, selectedTierId) ?? activeBoard().tiers[0];
   }
 
+  // Memoized whole-board conflict set: recomputes once when the board or status
+  // changes, then feeds both the conflict highlight and place()'s advance guard.
+  const conflicts = $derived(
+    board && status === 'playing' ? findConflicts(board, activeBoard()) : new Set<number>(),
+  );
+
   function stopTimer() {
     if (timer !== null) {
       clearInterval(timer);
@@ -104,7 +110,7 @@ export function createGame() {
     lastEntered = selected;
     checkWin();
     if (status !== 'playing') return; // board just solved — nothing to advance to
-    if (!conflictsAt(board, selected, activeBoard())) {
+    if (!conflicts.has(selected)) {
       const next = nextEmptyIndex(board, selected);
       if (next !== null) selected = next;
     }
@@ -242,7 +248,7 @@ export function createGame() {
       return selected;
     },
     get conflicts(): Set<number> {
-      return board && status === 'playing' ? findConflicts(board, activeBoard()) : new Set();
+      return conflicts;
     },
     get lastEntered() {
       return lastEntered;

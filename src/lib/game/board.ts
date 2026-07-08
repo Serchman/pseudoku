@@ -148,19 +148,6 @@ function arePeers(a: number, b: number, config: BoardConfig): boolean {
   return sameRow || sameCol || sameBlock;
 }
 
-// True if the value at `index` duplicates a peer in the same row, col, or block.
-// Targeted O(n) check — mirrors findConflicts' comparison so behavior matches
-// the conflict highlight exactly.
-export function conflictsAt(board: Board, index: number, config: BoardConfig): boolean {
-  const v = board[index].value;
-  if (v === null) return false;
-  for (let j = 0; j < board.length; j++) {
-    if (j === index || board[j].value !== v) continue;
-    if (arePeers(index, j, config)) return true;
-  }
-  return false;
-}
-
 export function findConflicts(board: Board, config: BoardConfig): Set<number> {
   const conflicts = new Set<number>();
   for (let i = 0; i < board.length; i++) {

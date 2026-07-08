@@ -213,7 +213,7 @@ describe('nextEmptyIndex', () => {
     expect(nextEmptyIndex(board, 2)).toBe(5);
   });
 
-  it('skips over filled cells, including given (prefilled) cells', () => {
+  it('skips over filled cells regardless of prefilled status', () => {
     const board: Board = Array.from({ length: 9 }, (_, i) => ({
       value: i + 1,
       prefilled: i % 2 === 0,

@@ -20,7 +20,7 @@
 <div
   class="board"
   class:solved={game.status === 'complete'}
-  style="grid-template-columns: repeat({blocksAcross}, auto)"
+  style="grid-template-columns: repeat({blocksAcross}, auto); --cols: {game.activeBoard.cols}; --rows: {game.activeBoard.rows}"
 >
   {#each blocks as block}
     <div
@@ -59,5 +59,14 @@
 
   .board.solved {
     animation: solveglow 1.6s ease-in-out infinite;
+  }
+
+  @media (max-width: 640px) {
+    .board {
+      --cell: min((100vw - 48px - (var(--cols) - 1) * 8px) / var(--cols),
+                  (100vh  - 380px) / var(--rows), 120px);   /* fallback */
+      --cell: min((100vw - 48px - (var(--cols) - 1) * 8px) / var(--cols),
+                  (100dvh - 380px) / var(--rows), 120px);
+    }
   }
 </style>

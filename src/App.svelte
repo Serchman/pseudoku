@@ -386,4 +386,9 @@
     color: var(--accent);
   }
 
+  @media (max-width: 640px) {
+    .board-panel { flex: 1; width: 100%; }
+    .board-col { flex: 1; width: 100%; align-content: space-between; }
+  }
+
 </style>

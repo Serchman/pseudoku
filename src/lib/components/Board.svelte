@@ -63,9 +63,9 @@
 
   @media (max-width: 640px) {
     .board {
-      --cell: min((100vw - 48px - (var(--cols) - 1) * 8px) / var(--cols),
+      --cell: min((100vw - 64px - (var(--cols) - 1) * 8px) / var(--cols),
                   (100vh  - 380px) / var(--rows), 120px);   /* fallback */
-      --cell: min((100vw - 48px - (var(--cols) - 1) * 8px) / var(--cols),
+      --cell: min((100vw - 64px - (var(--cols) - 1) * 8px) / var(--cols),
                   (100dvh - 380px) / var(--rows), 120px);
     }
   }

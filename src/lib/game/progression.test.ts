@@ -9,8 +9,8 @@ const EXPECTED: Record<string, number> = {
   'default:medium': 125,
   'board6x3': 430,
   'default:hard': 800,
-  'board6x3:medium': 1780,
-  'board6x3:hard': 3975,
+  'board6x3:medium': 1605,
+  'board6x3:hard': 2650,
 };
 
 describe('derived unlock ladder', () => {
@@ -23,8 +23,8 @@ describe('derived unlock ladder', () => {
     expect(BOARDS.default.tiers.find((t) => t.id === 'medium')!.cost).toBe(125);
     expect(BOARDS.default.tiers.find((t) => t.id === 'hard')!.cost).toBe(800);
     expect(BOARDS.board6x3.cost).toBe(430);
-    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'medium')!.cost).toBe(1780);
-    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'hard')!.cost).toBe(3975);
+    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'medium')!.cost).toBe(1605);
+    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'hard')!.cost).toBe(2650);
   });
 
   it('rises monotonically along the progression', () => {

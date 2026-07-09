@@ -113,12 +113,12 @@ describe('board selection and purchasing', () => {
   });
 
   it('selectBoard swaps per-board tier state and restores on return', () => {
-    // Need enough points: board6x3 costs 430, its medium tier costs 1780
-    localStorage.setItem('sudoku-incremental:pointokus', '2260');
+    // Need enough points: board6x3 costs 430, its medium tier costs 1605
+    localStorage.setItem('sudoku-incremental:pointokus', '2035');
     const game = createGame();
 
-    game.buyBoard('board6x3');  // -430 → 1830, active=board6x3
-    game.buyTier('medium');     // -1780 → 50, medium owned on board6x3
+    game.buyBoard('board6x3');  // -430 → 1605, active=board6x3
+    game.buyTier('medium');     // -1605 → 0, medium owned on board6x3
     game.selectTier('medium'); // medium selected on board6x3
 
     game.selectBoard('default');

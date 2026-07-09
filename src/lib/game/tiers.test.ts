@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { getNextTier, getTierById, canBuyTier } from './tiers';
 import { BOARDS } from './config';
 
-const tiers = BOARDS.default.tiers; // easy (0), medium (50), hard (200)
+const tiers = BOARDS.default.tiers; // easy (0), medium (125), hard (800)
 
 describe('getNextTier', () => {
   it('returns the first tier when nothing is owned', () => {
@@ -40,11 +40,11 @@ describe('canBuyTier', () => {
   });
 
   it('returns false when not affordable', () => {
-    expect(canBuyTier('medium', 49, new Set(['easy']), tiers)).toBe(false);
+    expect(canBuyTier('medium', 124, new Set(['easy']), tiers)).toBe(false);
   });
 
   it('returns true for the next tier when affordable', () => {
-    expect(canBuyTier('medium', 50, new Set(['easy']), tiers)).toBe(true);
+    expect(canBuyTier('medium', 125, new Set(['easy']), tiers)).toBe(true);
   });
 
   it('returns false when all tiers are owned', () => {

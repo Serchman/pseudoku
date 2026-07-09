@@ -9,12 +9,12 @@ describe('difficulty tiers in game state', () => {
   });
 
   it('buyTier deducts pointokus, marks the tier owned, and persists', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '60');
+    localStorage.setItem('sudoku-incremental:pointokus', '135');
     const game = createGame();
 
     game.buyTier('medium');
 
-    expect(game.pointokus).toBe(10); // 60 - 50
+    expect(game.pointokus).toBe(10); // 135 - 125
     expect(game.tiers.find((t) => t.id === 'medium')!.owned).toBe(true);
     expect(loadJson('sudoku-incremental:tiers:default')).toContain('medium');
     expect(Number(localStorage.getItem('sudoku-incremental:pointokus'))).toBe(10);
@@ -68,26 +68,26 @@ describe('board selection and purchasing', () => {
     localStorage.clear();
   });
 
-  it('buyBoard with ≥500 points: deducts 500, marks owned, persists, and auto-selects', () => {
+  it('buyBoard with ≥430 points: deducts 430, marks owned, persists, and auto-selects', () => {
     localStorage.setItem('sudoku-incremental:pointokus', '600');
     const game = createGame();
 
     game.buyBoard('board6x3');
 
-    expect(game.pointokus).toBe(100); // 600 - 500
+    expect(game.pointokus).toBe(170); // 600 - 430
     expect(game.boards.find((b) => b.id === 'board6x3')!.owned).toBe(true);
     expect(loadJson('sudoku-incremental:owned-boards')).toContain('board6x3');
-    expect(Number(localStorage.getItem('sudoku-incremental:pointokus'))).toBe(100);
+    expect(Number(localStorage.getItem('sudoku-incremental:pointokus'))).toBe(170);
     expect(game.activeBoard.id).toBe('board6x3');
   });
 
-  it('buyBoard with <500 points: no-op (unchanged points, not owned, default active)', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '499');
+  it('buyBoard with <430 points: no-op (unchanged points, not owned, default active)', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '429');
     const game = createGame();
 
     game.buyBoard('board6x3');
 
-    expect(game.pointokus).toBe(499);
+    expect(game.pointokus).toBe(429);
     expect(game.boards.find((b) => b.id === 'board6x3')!.owned).toBe(false);
     expect(game.activeBoard.id).toBe('default');
   });
@@ -106,19 +106,19 @@ describe('board selection and purchasing', () => {
     localStorage.setItem('sudoku-incremental:pointokus', '1200');
     const game = createGame();
 
-    game.buyBoard('board6x3'); // -500 → 700
+    game.buyBoard('board6x3'); // -430 → 770
     game.buyBoard('board6x3'); // already owned, no-op
 
-    expect(game.pointokus).toBe(700);
+    expect(game.pointokus).toBe(770);
   });
 
   it('selectBoard swaps per-board tier state and restores on return', () => {
-    // Need enough points: board6x3 costs 500, its medium tier costs 150
-    localStorage.setItem('sudoku-incremental:pointokus', '700');
+    // Need enough points: board6x3 costs 430, its medium tier costs 1780
+    localStorage.setItem('sudoku-incremental:pointokus', '2260');
     const game = createGame();
 
-    game.buyBoard('board6x3');  // -500 → 200, active=board6x3
-    game.buyTier('medium');     // -150 → 50, medium owned on board6x3
+    game.buyBoard('board6x3');  // -430 → 1830, active=board6x3
+    game.buyTier('medium');     // -1780 → 50, medium owned on board6x3
     game.selectTier('medium'); // medium selected on board6x3
 
     game.selectBoard('default');

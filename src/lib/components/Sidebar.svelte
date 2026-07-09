@@ -51,7 +51,7 @@
         >
           <div>
             <div class="unlock-title" class:locked={!tier.owned && !tier.buyable}>{tier.label}</div>
-            <div class="unlock-sub">{tier.emptyCells} empty · ×{tier.mult}</div>
+            <div class="unlock-sub">{tier.emptyCells} empty · ×{tier.mult.toFixed(1)}</div>
           </div>
           {#if tier.owned}
             {#if tier.selected}

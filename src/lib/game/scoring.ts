@@ -1,5 +1,5 @@
 import type { Bracket, BoardConfig } from './config';
-import { FLAT_POINTS, EXP_BASE, POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY } from './config';
+import { EXP_BASE, POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY } from './config';
 
 export interface ScoreResult {
   points: number;
@@ -24,11 +24,13 @@ export function difficultyFactor(emptyCells: number, totalCells: number): number
 export function computeScore(
   timeMs: number,
   brackets: Bracket[],
-  opts: { speedBonusOwned: boolean; globalMultiplier: number; difficultyMult: number },
+  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number },
 ): ScoreResult {
+  const base = POINT_SCALE * opts.boardWorth * opts.difficultyFactor;
+
   if (!opts.speedBonusOwned) {
     return {
-      points: Math.round(FLAT_POINTS * opts.difficultyMult),
+      points: Math.round(base),
       bracketMult: 1,
       expFactor: 1,
       speedApplied: false,
@@ -57,9 +59,7 @@ export function computeScore(
   }
 
   const bracketMult = selected.mult;
-  const points = Math.round(
-    FLAT_POINTS * bracketMult * expFactor * opts.globalMultiplier * opts.difficultyMult,
-  );
+  const points = Math.round(base * bracketMult * expFactor * opts.globalMultiplier);
 
   return { points, bracketMult, expFactor, speedApplied: true };
 }

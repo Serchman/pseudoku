@@ -1,6 +1,5 @@
 export const BOARD_SIZE = 9;
 export const EMPTY_CELLS = 3;
-export const FLAT_POINTS = 10;
 
 export const EXP_BASE = 1.5;         // intra-bracket exponential base (tunable, shared default)
 export const GLOBAL_MULTIPLIER = 1;  // reserved for future unlocks; not upgradeable in this scope
@@ -20,7 +19,6 @@ export interface DifficultyTier {
   id: string;
   label: string;
   emptyCells: number; // blank cells the player must fill
-  mult: number;       // points multiplier applied to the whole payout
   cost: number;       // pointokus to unlock (0 = free starter tier)
 }
 
@@ -62,9 +60,9 @@ export const BOARDS: Record<string, BoardConfig> = {
     ],
     // Difficulty tiers: more empty cells for a bigger multiplier (speed vs. reward tradeoff).
     tiers: [
-      { id: 'easy', label: 'Easy', emptyCells: 3, mult: 1.0, cost: 0 },
-      { id: 'medium', label: 'Medium', emptyCells: 5, mult: 2.0, cost: 50 },
-      { id: 'hard', label: 'Hard', emptyCells: 7, mult: 3.5, cost: 200 },
+      { id: 'easy', label: 'Easy', emptyCells: 3, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 5, cost: 50 },
+      { id: 'hard', label: 'Hard', emptyCells: 7, cost: 200 },
     ],
   },
   board6x3: {
@@ -86,9 +84,9 @@ export const BOARDS: Record<string, BoardConfig> = {
       { maxSec: Infinity, mult: 1 },
     ],
     tiers: [
-      { id: 'easy', label: 'Easy', emptyCells: 6, mult: 1.0, cost: 0 },
-      { id: 'medium', label: 'Medium', emptyCells: 10, mult: 2.5, cost: 150 },
-      { id: 'hard', label: 'Hard', emptyCells: 14, mult: 4.5, cost: 500 },
+      { id: 'easy', label: 'Easy', emptyCells: 6, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 10, cost: 150 },
+      { id: 'hard', label: 'Hard', emptyCells: 14, cost: 500 },
     ],
   },
 };

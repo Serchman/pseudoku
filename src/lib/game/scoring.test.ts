@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeScore } from './scoring';
+import { computeScore, boardWorth, difficultyFactor } from './scoring';
 import { BOARDS, FLAT_POINTS } from './config';
 
 const brackets = BOARDS.default.brackets;
@@ -64,5 +64,31 @@ describe('computeScore', () => {
 
     expect(scaled.points).toBeGreaterThanOrEqual(base.points * 3.5 - 1);
     expect(scaled.points).toBeLessThanOrEqual(base.points * 3.5 + 1);
+  });
+});
+
+describe('boardWorth', () => {
+  it('is 1.0 for the reference 3×3 board', () => {
+    expect(boardWorth(BOARDS.default)).toBeCloseTo(1.0, 5);
+  });
+
+  it('scales above 1 for the larger 6×3 board', () => {
+    // (18/9) ** 1.3 ≈ 2.4623
+    expect(boardWorth(BOARDS.board6x3)).toBeCloseTo(2.4623, 3);
+  });
+});
+
+describe('difficultyFactor', () => {
+  it('is 1.0 at the reference density (Easy: 3 of 9 blank)', () => {
+    expect(difficultyFactor(3, 9)).toBeCloseTo(1.0, 5);
+  });
+
+  it('increases with blank density', () => {
+    expect(difficultyFactor(7, 9)).toBeGreaterThan(difficultyFactor(3, 9));
+  });
+
+  it('is identical for equal densities across board sizes', () => {
+    // 3/9 and 6/18 are both 1/3
+    expect(difficultyFactor(3, 9)).toBeCloseTo(difficultyFactor(6, 18), 5);
   });
 });

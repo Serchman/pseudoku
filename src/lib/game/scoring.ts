@@ -1,11 +1,24 @@
-import type { Bracket } from './config';
-import { FLAT_POINTS, EXP_BASE } from './config';
+import type { Bracket, BoardConfig } from './config';
+import { FLAT_POINTS, EXP_BASE, POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY } from './config';
 
 export interface ScoreResult {
   points: number;
   bracketMult: number;
   expFactor: number;
   speedApplied: boolean;
+}
+
+// Board worth scales with total cells, normalized so the 3×3 reference board = 1.0.
+export function boardWorth(board: BoardConfig): number {
+  const totalCells = board.cols * board.rows;
+  return (totalCells / REF_CELLS) ** SIZE_EXP;
+}
+
+// Difficulty scales with blank density (emptyCells / totalCells), normalized so the
+// Easy reference density (1/3) = 1.0. Board-size-independent by construction.
+export function difficultyFactor(emptyCells: number, totalCells: number): number {
+  const density = emptyCells / totalCells;
+  return (density / REF_DENSITY) ** DIFF_EXP;
 }
 
 export function computeScore(

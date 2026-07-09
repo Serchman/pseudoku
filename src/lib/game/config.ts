@@ -5,6 +5,12 @@ export const FLAT_POINTS = 10;
 export const EXP_BASE = 1.5;         // intra-bracket exponential base (tunable, shared default)
 export const GLOBAL_MULTIPLIER = 1;  // reserved for future unlocks; not upgradeable in this scope
 
+export const POINT_SCALE = 10;       // base payout for the reference board+tier (replaces FLAT_POINTS)
+export const SIZE_EXP = 1.3;         // board-worth steepness in total cells (tunable)
+export const DIFF_EXP = 1.5;         // difficulty steepness in blank density (tunable)
+export const REF_CELLS = 9;          // reference board size (3×3): boardWorth = 1 here
+export const REF_DENSITY = 1 / 3;    // reference blank density (Easy): difficultyFactor = 1 here
+
 export interface Bracket {
   maxSec: number; // upper time bound (seconds) of this bracket; last entry uses Infinity
   mult: number;   // bracket multiplier

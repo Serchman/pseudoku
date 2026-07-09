@@ -1,5 +1,5 @@
-import type { Bracket } from './config';
-import { FLAT_POINTS, EXP_BASE } from './config';
+import type { Bracket, BoardConfig } from './config';
+import { EXP_BASE, POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY } from './config';
 
 export interface ScoreResult {
   points: number;
@@ -8,14 +8,29 @@ export interface ScoreResult {
   speedApplied: boolean;
 }
 
+// Board worth scales with total cells, normalized so the 3×3 reference board = 1.0.
+export function boardWorth(board: BoardConfig): number {
+  const totalCells = board.cols * board.rows;
+  return (totalCells / REF_CELLS) ** SIZE_EXP;
+}
+
+// Difficulty scales with blank density (emptyCells / totalCells), normalized so the
+// Easy reference density (1/3) = 1.0. Board-size-independent by construction.
+export function difficultyFactor(emptyCells: number, totalCells: number): number {
+  const density = emptyCells / totalCells;
+  return (density / REF_DENSITY) ** DIFF_EXP;
+}
+
 export function computeScore(
   timeMs: number,
   brackets: Bracket[],
-  opts: { speedBonusOwned: boolean; globalMultiplier: number; difficultyMult: number },
+  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number },
 ): ScoreResult {
+  const base = POINT_SCALE * opts.boardWorth * opts.difficultyFactor;
+
   if (!opts.speedBonusOwned) {
     return {
-      points: Math.round(FLAT_POINTS * opts.difficultyMult),
+      points: Math.round(base),
       bracketMult: 1,
       expFactor: 1,
       speedApplied: false,
@@ -44,9 +59,7 @@ export function computeScore(
   }
 
   const bracketMult = selected.mult;
-  const points = Math.round(
-    FLAT_POINTS * bracketMult * expFactor * opts.globalMultiplier * opts.difficultyMult,
-  );
+  const points = Math.round(base * bracketMult * expFactor * opts.globalMultiplier);
 
   return { points, bracketMult, expFactor, speedApplied: true };
 }

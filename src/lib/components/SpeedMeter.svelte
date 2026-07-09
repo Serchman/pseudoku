@@ -1,6 +1,6 @@
 <script lang="ts">
   import { game } from '../game/state.svelte';
-  import { computeSegments, computeMeterPosition, formatClock, formatCountdown } from '../game/meter';
+  import { computeSegments, computeMeterPosition, formatClock } from '../game/meter';
 
   // Bar geometry never changes for a board — compute it once, not every tick.
   const { segments, horizonSec } = computeSegments(game.activeBoard.brackets);
@@ -11,11 +11,11 @@
   <div class="top-row">
     <span class="clock">{formatClock(game.elapsed)}</span>
     <span class="arrow">➜</span>
-    <span class="mult">×{pos.currentMult.toFixed(1)}</span>
+    <span class="projected">{game.projectedPoints} P</span>
   </div>
 
   <div class="bar">
-    <div class="fill" style="width: {pos.positionPct}%"></div>
+    <div class="fill" style="left: {pos.positionPct}%"></div>
     {#each segments as segment, i}
       {#if i < segments.length - 1}
         <div class="divider" style="left: {segment.endPct}%"></div>
@@ -34,13 +34,6 @@
       </span>
     {/each}
   </div>
-
-  {#if pos.nextDropSec !== null}
-    <div class="next-drop">
-      <span class="dot"></span>
-      next drop {formatCountdown(pos.nextDropSec)} → ×{pos.nextMult?.toFixed(1)}
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -72,11 +65,11 @@
     color: var(--dim);
   }
 
-  .mult {
+  .projected {
     font-family: 'JetBrains Mono', monospace;
     font-size: 21px;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--points);
   }
 
   .bar {
@@ -91,7 +84,7 @@
   .fill {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, var(--accent-fill), var(--accent));
+    background: linear-gradient(90deg, var(--accent), var(--accent-fill));
     opacity: 0.85;
   }
 
@@ -132,25 +125,5 @@
   .label.active {
     color: var(--accent);
     font-weight: 700;
-  }
-
-  .next-drop {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    color: var(--points);
-  }
-
-  .dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--points);
-    box-shadow: 0 0 8px rgba(245, 180, 84, 0.7);
-    animation: pulsedot 1.6s ease-in-out infinite;
   }
 </style>

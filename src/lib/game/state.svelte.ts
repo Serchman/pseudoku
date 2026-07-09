@@ -1,6 +1,6 @@
 import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
-import { computeScore } from './scoring';
+import { computeScore, boardWorth, difficultyFactor } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
 import { getTierById, canBuyTier } from './tiers';
 import {
@@ -70,6 +70,17 @@ export function createGame() {
     return getTierById(activeBoard().tiers, selectedTierId) ?? activeBoard().tiers[0];
   }
 
+  function scoreOpts() {
+    const b = activeBoard();
+    const totalCells = b.cols * b.rows;
+    return {
+      speedBonusOwned: owned.has('speed-bonus'),
+      globalMultiplier: GLOBAL_MULTIPLIER,
+      boardWorth: boardWorth(b),
+      difficultyFactor: difficultyFactor(selectedTier().emptyCells, totalCells),
+    };
+  }
+
   // Memoized whole-board conflict set: recomputes once when the board or status
   // changes, then feeds both the conflict highlight and place()'s advance guard.
   const conflicts = $derived(
@@ -128,11 +139,7 @@ export function createGame() {
     stopTimer();
     const timeMs = performance.now() - startTime;
     elapsed = timeMs;
-    const result = computeScore(timeMs, activeBoard().brackets, {
-      speedBonusOwned: owned.has('speed-bonus'),
-      globalMultiplier: GLOBAL_MULTIPLIER,
-      difficultyMult: selectedTier().mult,
-    });
+    const result = computeScore(timeMs, activeBoard().brackets, scoreOpts());
     pendingPoints += result.points;
     lastResult = {
       points: result.points,
@@ -256,6 +263,9 @@ export function createGame() {
     get elapsed() {
       return elapsed;
     },
+    get projectedPoints() {
+      return computeScore(elapsed, activeBoard().brackets, scoreOpts()).points;
+    },
     get lastResult() {
       return lastResult;
     },
@@ -286,8 +296,10 @@ export function createGame() {
       return selectedTier();
     },
     get tiers() {
+      const totalCells = activeBoard().cols * activeBoard().rows;
       return activeBoard().tiers.map((t) => ({
         ...t,
+        mult: difficultyFactor(t.emptyCells, totalCells),
         owned: ownedTiers.has(t.id),
         selected: t.id === selectedTierId,
         buyable: canBuyTier(t.id, pointokus, ownedTiers, activeBoard().tiers),

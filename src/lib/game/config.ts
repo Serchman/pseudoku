@@ -1,9 +1,14 @@
 export const BOARD_SIZE = 9;
 export const EMPTY_CELLS = 3;
-export const FLAT_POINTS = 10;
 
 export const EXP_BASE = 1.5;         // intra-bracket exponential base (tunable, shared default)
 export const GLOBAL_MULTIPLIER = 1;  // reserved for future unlocks; not upgradeable in this scope
+
+export const POINT_SCALE = 10;       // base payout for the reference board+tier (replaces FLAT_POINTS)
+export const SIZE_EXP = 1.3;         // board-worth steepness in total cells (tunable)
+export const DIFF_EXP = 1.5;         // difficulty steepness in blank density (tunable)
+export const REF_CELLS = 9;          // reference board size (3×3): boardWorth = 1 here
+export const REF_DENSITY = 1 / 3;    // reference blank density (Easy): difficultyFactor = 1 here
 
 export interface Bracket {
   maxSec: number; // upper time bound (seconds) of this bracket; last entry uses Infinity
@@ -14,7 +19,6 @@ export interface DifficultyTier {
   id: string;
   label: string;
   emptyCells: number; // blank cells the player must fill
-  mult: number;       // points multiplier applied to the whole payout
   cost: number;       // pointokus to unlock (0 = free starter tier)
 }
 
@@ -56,9 +60,9 @@ export const BOARDS: Record<string, BoardConfig> = {
     ],
     // Difficulty tiers: more empty cells for a bigger multiplier (speed vs. reward tradeoff).
     tiers: [
-      { id: 'easy', label: 'Easy', emptyCells: 3, mult: 1.0, cost: 0 },
-      { id: 'medium', label: 'Medium', emptyCells: 5, mult: 2.0, cost: 50 },
-      { id: 'hard', label: 'Hard', emptyCells: 7, mult: 3.5, cost: 200 },
+      { id: 'easy', label: 'Easy', emptyCells: 3, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 5, cost: 50 },
+      { id: 'hard', label: 'Hard', emptyCells: 7, cost: 200 },
     ],
   },
   board6x3: {
@@ -80,9 +84,9 @@ export const BOARDS: Record<string, BoardConfig> = {
       { maxSec: Infinity, mult: 1 },
     ],
     tiers: [
-      { id: 'easy', label: 'Easy', emptyCells: 6, mult: 1.0, cost: 0 },
-      { id: 'medium', label: 'Medium', emptyCells: 10, mult: 2.5, cost: 150 },
-      { id: 'hard', label: 'Hard', emptyCells: 14, mult: 4.5, cost: 500 },
+      { id: 'easy', label: 'Easy', emptyCells: 6, cost: 0 },
+      { id: 'medium', label: 'Medium', emptyCells: 10, cost: 150 },
+      { id: 'hard', label: 'Hard', emptyCells: 14, cost: 500 },
     ],
   },
 };

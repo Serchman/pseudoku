@@ -139,6 +139,7 @@ body {
 
 .app {
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -189,5 +190,19 @@ body {
   flex-direction: column;
   gap: 22px;
   background: var(--panel);
+}
+
+@media (max-width: 640px) {
+  .body { flex-direction: column; }
+  /* Phase-1 stopgap: the 312px overlay would cover the board. Becomes the
+     bottom-sheet drawer in Phase 5. */
+  .sidebar { display: none; }
+  .board-area {
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 12px max(12px, env(safe-area-inset-left))
+             max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+  }
 }
 

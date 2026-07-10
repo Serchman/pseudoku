@@ -419,6 +419,32 @@
     }
     .prestige-gain-label { display: none; }
 
+    /* Phase 3 — segmented tab strip. Restyle the desktop underline tabs into a
+       pill/segmented control; behavior (game.setView) is unchanged. */
+    .tabs {
+      gap: 4px;
+      margin: 4px 12px 0;
+      padding: 4px;
+      background: var(--panel);
+      border: 1px solid var(--border-5);
+      border-radius: 11px;
+    }
+    .tab {
+      flex: 1;
+      justify-content: center;
+      height: 34px;
+      padding: 0;
+      margin-bottom: 0;
+      border: 0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .tab.active {
+      background: var(--accent-fill);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+    }
+
     .board-panel { flex: 1; width: 100%; }
     .board-col { flex: 1; width: 100%; align-content: space-between; }
   }

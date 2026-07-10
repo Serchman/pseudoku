@@ -193,6 +193,14 @@ body {
 }
 
 @media (max-width: 640px) {
+  /* Compact top bar (Phase 2): collapse the 86px grid into a full-width
+     space-between pill row; the wordmark/version block is hidden in App.svelte.
+     safe-area-inset-top clears the notch. */
+  .topbar {
+    height: auto;
+    display: flex;
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  }
   .body { flex-direction: column; }
   /* Phase-1 stopgap: the 312px overlay would cover the board. Becomes the
      bottom-sheet drawer in Phase 5. */

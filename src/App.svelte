@@ -69,8 +69,10 @@
 
         <div class="board-panel">
           <div class="board-col">
-            {#if game.speedBonusOwned && game.status !== 'idle'}
-              <div class="meter-slot"><SpeedMeter /></div>
+            {#if game.speedBonusOwned}
+              {#key game.activeBoard}
+                <div class="meter-slot" class:reserved={game.status === 'idle'}><SpeedMeter /></div>
+              {/key}
             {/if}
             <div class="board-wrap">
               <Board />
@@ -81,9 +83,11 @@
                 </div>
               {/if}
             </div>
-            {#if game.status !== 'idle'}
+            <!-- Kept mounted (hidden) when idle so the board holds its playing
+                 position — pressing Start reveals the pad without reflowing the grid. -->
+            <div class="pad-slot" class:reserved={game.status === 'idle'}>
               <NumberPad />
-            {/if}
+            </div>
           </div>
 
           {#if game.status === 'complete' && game.lastResult}
@@ -302,8 +306,14 @@
     gap: 16px;
   }
 
-  .meter-slot {
+  .meter-slot,
+  .pad-slot {
     width: 100%;
+  }
+
+  /* Reserve layout space while hidden so the board doesn't shift on Start. */
+  .reserved {
+    visibility: hidden;
   }
 
   .board-wrap {
@@ -387,6 +397,28 @@
   }
 
   @media (max-width: 640px) {
+    /* Phase 2 — compact top bar. Drop the wordmark block; spread the POINTS
+       chip and PRESTIGE button across the full width. */
+    .topbar-left { display: none; }
+    .topbar-center { width: 100%; justify-content: space-between; gap: 10px; }
+
+    .points-box {
+      flex-direction: row;
+      gap: 9px;
+      padding: 8px 13px;
+    }
+    .points-box-label { font-size: 8px; letter-spacing: 2.5px; }
+    .points-box-value { font-size: 18px; }
+
+    .prestige-btn { gap: 8px; padding: 8px 12px; }
+    .prestige-label { font-size: 10.5px; letter-spacing: 1.5px; }
+    .prestige-divider { height: 18px; }
+    .prestige-gain-value {
+      font-size: 15px;
+      text-shadow: 0 0 10px rgba(94, 234, 212, 0.4);
+    }
+    .prestige-gain-label { display: none; }
+
     .board-panel { flex: 1; width: 100%; }
     .board-col { flex: 1; width: 100%; align-content: space-between; }
   }

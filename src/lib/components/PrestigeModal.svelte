@@ -65,7 +65,7 @@
   .scrim {
     position: fixed;
     inset: 0;
-    z-index: 20;
+    z-index: 60;
     display: flex;
     align-items: center;
     justify-content: center;

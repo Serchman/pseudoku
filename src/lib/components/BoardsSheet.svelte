@@ -139,12 +139,14 @@
       max-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      visibility: hidden;
       transition: max-height 0.25s ease;
     }
 
     .sheet.open .sheet-body {
       max-height: 70vh;
       padding-bottom: 6px;
+      visibility: visible;
     }
   }
 

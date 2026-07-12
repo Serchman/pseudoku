@@ -3,6 +3,7 @@
   import Board from './lib/components/Board.svelte';
   import NumberPad from './lib/components/NumberPad.svelte';
   import Sidebar from './lib/components/Sidebar.svelte';
+  import BoardsSheet from './lib/components/BoardsSheet.svelte';
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
@@ -109,6 +110,8 @@
       <aside class="sidebar">
         <Sidebar />
       </aside>
+
+      <BoardsSheet />
     {:else if game.activeView === 'unlocks'}
       <UnlocksView />
     {:else}
@@ -447,6 +450,10 @@
 
     .board-panel { flex: 1; width: 100%; }
     .board-col { flex: 1; width: 100%; align-content: space-between; }
+
+    /* Phase 5 — number entry moves to a later input phase; the docked pad is
+       removed on mobile to free the bottom zone for the drawer. */
+    .pad-slot { display: none; }
   }
 
 </style>

@@ -61,9 +61,10 @@ describe('resolveTarget', () => {
   });
 
   it('cancels mid-annulus on a target bearing but off its circle', () => {
-    // 50px out along digit 1's bearing: the old sector hit-test called this digit 1,
-    // but it is 38px from that circle's centre — the finger is on no target.
-    const rad = (STEP_DEG * 0 * Math.PI) / 180;
+    // 50px out along digit 1's bearing (target k=0): the old sector hit-test called this
+    // digit 1, but it is 38px from that circle's centre — the finger is on no target.
+    const k = 0;
+    const rad = (STEP_DEG * k * Math.PI) / 180;
     expect(resolveTarget(50 * Math.sin(rad), -50 * Math.cos(rad))).toBeNull();
   });
 
@@ -78,10 +79,13 @@ describe('resolveTarget', () => {
     expect([1, 2]).toContain(picked);
   });
 
-  it('regression: a tap with no drag near a clamped edge origin picks nothing', () => {
-    // The clamp shifts the ring inward, so an edge-column press sits 33-65px from the ring
-    // centre with zero finger travel. The old sector hit-test resolved these to digits 9
-    // and 4 and committed them on lift; they are on no circle, so they must cancel.
+  it('regression: these clamp-shifted edge-origin deltas lie on no circle', () => {
+    // The clamp shifts the ring inward, so an edge-column press can land tens of px off
+    // the ring centre with zero finger travel; -33 and 65 are two such deltas. The old
+    // sector hit-test resolved them to digits 9 and 4 and committed them on lift, but
+    // neither is inside any target's circle, so resolveTarget must cancel both. Guarding
+    // against accidental commits in general is the component's ARM_THRESHOLD job, not this
+    // pure module's — resolveTarget alone does not guarantee every no-drag edge press cancels.
     expect(resolveTarget(-33, 0)).toBeNull();
     expect(resolveTarget(65, 0)).toBeNull();
   });

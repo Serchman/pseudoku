@@ -8,8 +8,10 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
   import PrestigeModal from './lib/components/PrestigeModal.svelte';
+  import RadialPicker from './lib/components/RadialPicker.svelte';
 
   let showPrestige = $state(false);
+  let picker: RadialPicker | undefined = $state();
 
   function onKeydown(e: KeyboardEvent) {
     if (game.status !== 'playing') return;
@@ -76,7 +78,7 @@
               {/key}
             {/if}
             <div class="board-wrap">
-              <Board />
+              <Board onCellPress={(i, e) => picker?.begin(i, e)} />
               {#if game.status === 'idle'}
                 <div class="start-overlay">
                   <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
@@ -127,6 +129,8 @@
       oncancel={() => (showPrestige = false)}
     />
   {/if}
+
+  <RadialPicker bind:this={picker} />
 </div>
 
 <style>

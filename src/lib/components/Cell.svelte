@@ -7,12 +7,14 @@
     error = false,
     conflict = false,
     onSelect,
+    onPress,
   }: {
     cell: Cell;
     selected: boolean;
     error?: boolean;
     conflict?: boolean;
     onSelect: () => void;
+    onPress?: (e: PointerEvent) => void;
   } = $props();
 </script>
 
@@ -24,6 +26,7 @@
   class:conflict
   disabled={cell.prefilled}
   onclick={onSelect}
+  onpointerdown={(e) => { if (e.pointerType === 'touch') onPress?.(e); }}
 >
   {cell.value ?? ''}
   {#if selected && cell.value == null}
@@ -47,6 +50,7 @@
     color: var(--cell-player-numeral);
     padding: 0;
     cursor: pointer;
+    touch-action: none;
   }
 
   .cell.prefilled {

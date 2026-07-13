@@ -449,7 +449,12 @@
     }
 
     .board-panel { flex: 1; width: 100%; }
-    .board-col { flex: 1; width: 100%; align-content: space-between; }
+    /* With the NumberPad gone, the column holds only the board (+ optional speed
+       meter). space-between top-pinned that lone row and left dead space below;
+       center it in the reclaimed vertical space instead. justify-content centers
+       the collapsed track on the inline axis (justify-items only centers content
+       within the track, not the track itself). */
+    .board-col { flex: 1; width: 100%; align-content: center; justify-content: center; }
 
     /* Phase 5 — number entry moves to a later input phase; the docked pad is
        removed on mobile to free the bottom zone for the drawer. */

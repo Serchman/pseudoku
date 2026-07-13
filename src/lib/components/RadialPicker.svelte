@@ -263,13 +263,14 @@
     }
   }
 
+  /* `to` deliberately omits opacity: the implicit to-value comes from the cascade, so a target
+     fades in to its own opacity (1 normally, .28 when spent) instead of snapping dim afterwards. */
   @keyframes bloom {
     from {
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.4);
     }
     to {
-      opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
   }

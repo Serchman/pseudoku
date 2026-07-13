@@ -5,10 +5,15 @@ export const IDLE = 44; // px, diameter of an idle target
 export const SELECTED = 58; // px, diameter of the locked/selected target
 export const GUIDE = 180; // px, diameter of the breathing guide ring
 export const SCRIM = 250; // px, diameter of the radial scrim
-export const DEAD_ZONE = 30; // px, radius below which the gesture resolves to null (cancel)
-export const OUTER_CANCEL = 132; // px, radius above which the gesture resolves to null (cancel)
 export const STEP_DEG = 36; // 360 / 10 targets
 export const START_DEG = 0; // target k=0 (digit 1) sits straight up, at 12 o'clock
+
+// A target is hit only when the finger is genuinely inside its circle: the circle you see is
+// the circle you hit. At RADIUS 88 adjacent centres are 2 * 88 * sin(18°) ≈ 54.4px apart, so a
+// 29px hit radius makes neighbouring hit areas just meet — sliding around the ring stays
+// continuous, while no distance-from-centre other than the ring itself resolves to a digit.
+export const HIT_RADIUS = SELECTED / 2; // px, a target's locked/grown radius
+export const ARM_THRESHOLD = 8; // px the finger must travel before a target can be picked
 
 export const MARGIN = RADIUS + SELECTED / 2; // keeps the whole fan on screen
 
@@ -23,14 +28,21 @@ export function targetOffset(k: number): { x: number; y: number } {
   };
 }
 
-// Given the finger's offset from the ring centre (screen coords, y down), return
-// which target the finger is over, or null for cancel.
+// Given the finger's offset from the ring centre (screen coords, y down), return the target
+// whose circle the finger is inside, or null for cancel (the finger is on no target).
 export function resolveTarget(dx: number, dy: number): RadialTarget | null {
-  const r = Math.hypot(dx, dy);
-  if (r < DEAD_ZONE || r > OUTER_CANCEL) return null;
-  const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
-  const k = ((Math.round(deg / STEP_DEG) % 10) + 10) % 10;
-  return k === 9 ? 'remove' : k + 1;
+  let best: number | null = null;
+  let bestDist = HIT_RADIUS;
+  for (let k = 0; k < 10; k++) {
+    const c = targetOffset(k);
+    const d = Math.hypot(dx - c.x, dy - c.y);
+    if (d < bestDist) {
+      bestDist = d;
+      best = k;
+    }
+  }
+  if (best === null) return null;
+  return best === 9 ? 'remove' : best + 1;
 }
 
 // Shifts the ring's origin inward so the whole fan stays on screen. Does not rotate the fan.

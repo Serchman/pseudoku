@@ -2,6 +2,7 @@
   import { exhaustedSymbols } from '../game/board';
   import { game } from '../game/state.svelte';
   import {
+    ARM_THRESHOLD,
     GUIDE,
     IDLE,
     RADIUS,
@@ -18,6 +19,7 @@
   let overlayEl: HTMLDivElement;
   let active = $state(false);
   let origin = $state({ x: 0, y: 0 });
+  let press = $state({ x: 0, y: 0 });
   let finger = $state({ x: 0, y: 0 });
   let pointerId: number | null = null;
 
@@ -25,15 +27,20 @@
     game.board ? exhaustedSymbols(game.board, game.activeBoard) : new Set<number>(),
   );
 
-  // The ring (and the hit test) sit at the clamped origin; the raw finger point still
-  // drives dx/dy — the dead zone absorbs the small offset near a screen edge.
+  // Nothing is pickable until the finger has actually travelled: a press-and-lift cannot
+  // resolve to a target, whatever the clamp did to the ring's origin.
+  const armed = $derived(
+    active && Math.hypot(finger.x - press.x, finger.y - press.y) > ARM_THRESHOLD,
+  );
+
+  // The ring is drawn at the clamped origin, so the hit test measures from it too.
   const hovered = $derived(
-    active ? resolveTarget(finger.x - origin.x, finger.y - origin.y) : null,
+    armed ? resolveTarget(finger.x - origin.x, finger.y - origin.y) : null,
   );
 
   // An exhausted digit is not pickable: it neither locks in nor commits.
   const picked = $derived(
-    hovered !== null && typeof hovered === 'number' && disabled.has(hovered) ? null : hovered,
+    typeof hovered === 'number' && disabled.has(hovered) ? null : hovered,
   );
 
   const beamDeg = $derived.by(() => {
@@ -45,12 +52,16 @@
   export function begin(index: number, e: PointerEvent) {
     if (active) return;
     if (e.pointerType !== 'touch') return;
+    // On a solved board `game.selected` still points at the last-filled cell, so the identity
+    // guard below would pass and bloom a fan whose every commit path silently no-ops.
+    if (game.status !== 'playing') return;
     e.preventDefault();
 
     game.select(index);
     if (game.selected !== index) return;
 
     origin = clampOrigin(e.clientX, e.clientY, window.innerWidth, window.innerHeight);
+    press = { x: e.clientX, y: e.clientY };
     finger = { x: e.clientX, y: e.clientY };
     pointerId = e.pointerId;
     overlayEl.setPointerCapture(e.pointerId);

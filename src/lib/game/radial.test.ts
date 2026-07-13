@@ -4,8 +4,7 @@ import {
   resolveTarget,
   clampOrigin,
   RADIUS,
-  DEAD_ZONE,
-  OUTER_CANCEL,
+  HIT_RADIUS,
   STEP_DEG,
   MARGIN,
 } from './radial';
@@ -30,8 +29,15 @@ describe('targetOffset', () => {
   });
 });
 
+// A point `dist` px from target k's centre, pushed radially inward toward the ring centre.
+function offCentre(k: number, dist: number): { x: number; y: number } {
+  const c = targetOffset(k);
+  const scale = (RADIUS - dist) / RADIUS;
+  return { x: c.x * scale, y: c.y * scale };
+}
+
 describe('resolveTarget', () => {
-  it('resolves all 10 sectors from a point directly on target k', () => {
+  it('resolves all 10 targets from a point dead-centre on target k', () => {
     for (let k = 0; k < 9; k++) {
       const { x, y } = targetOffset(k);
       expect(resolveTarget(x, y)).toBe(k + 1);
@@ -40,40 +46,44 @@ describe('resolveTarget', () => {
     expect(resolveTarget(remove.x, remove.y)).toBe('remove');
   });
 
-  it('a point just clockwise of straight-up resolves to digit 1', () => {
-    const deg = STEP_DEG / 2 - 1; // just inside digit 1's sector, clockwise side
-    const rad = (deg * Math.PI) / 180;
-    const x = RADIUS * Math.sin(rad);
-    const y = -RADIUS * Math.cos(rad);
+  it('picks a target from a point just inside its circle', () => {
+    const { x, y } = offCentre(0, HIT_RADIUS - 1);
     expect(resolveTarget(x, y)).toBe(1);
   });
 
-  it('a point just counter-clockwise of straight-up resolves to remove', () => {
-    const deg = -(STEP_DEG / 2 + 1); // just past the digit-1/remove boundary, ccw of top
-    const rad = (deg * Math.PI) / 180;
-    const x = RADIUS * Math.sin(rad);
-    const y = -RADIUS * Math.cos(rad);
-    expect(resolveTarget(x, y)).toBe('remove');
+  it('picks nothing from a point just outside every circle', () => {
+    const { x, y } = offCentre(0, HIT_RADIUS + 1);
+    expect(resolveTarget(x, y)).toBeNull();
   });
 
-  it('cancels inside the dead zone at the exact centre', () => {
+  it('cancels at the exact ring centre', () => {
     expect(resolveTarget(0, 0)).toBeNull();
   });
 
-  it('cancels for r < DEAD_ZONE', () => {
-    expect(resolveTarget(DEAD_ZONE - 1, 0)).toBeNull();
+  it('cancels mid-annulus on a target bearing but off its circle', () => {
+    // 50px out along digit 1's bearing: the old sector hit-test called this digit 1,
+    // but it is 38px from that circle's centre — the finger is on no target.
+    const rad = (STEP_DEG * 0 * Math.PI) / 180;
+    expect(resolveTarget(50 * Math.sin(rad), -50 * Math.cos(rad))).toBeNull();
   });
 
-  it('does not cancel at r === DEAD_ZONE', () => {
-    expect(resolveTarget(0, -DEAD_ZONE)).not.toBeNull();
+  it('cancels far outside the ring', () => {
+    expect(resolveTarget(0, -150)).toBeNull();
   });
 
-  it('cancels for r > OUTER_CANCEL', () => {
-    expect(resolveTarget(0, -(OUTER_CANCEL + 1))).toBeNull();
+  it('still picks one of two neighbours midway along the ring between them', () => {
+    // Adjacent hit circles just meet along the ring — sliding around it never falls through.
+    const rad = ((STEP_DEG / 2) * Math.PI) / 180;
+    const picked = resolveTarget(RADIUS * Math.sin(rad), -RADIUS * Math.cos(rad));
+    expect([1, 2]).toContain(picked);
   });
 
-  it('does not cancel at r === OUTER_CANCEL', () => {
-    expect(resolveTarget(0, -OUTER_CANCEL)).not.toBeNull();
+  it('regression: a tap with no drag near a clamped edge origin picks nothing', () => {
+    // The clamp shifts the ring inward, so an edge-column press sits 33-65px from the ring
+    // centre with zero finger travel. The old sector hit-test resolved these to digits 9
+    // and 4 and committed them on lift; they are on no circle, so they must cancel.
+    expect(resolveTarget(-33, 0)).toBeNull();
+    expect(resolveTarget(65, 0)).toBeNull();
   });
 });
 

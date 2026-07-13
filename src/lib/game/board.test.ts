@@ -6,6 +6,7 @@ import {
   findConflicts,
   firstEmptyIndex,
   nextEmptyIndex,
+  exhaustedSymbols,
   type Board,
 } from './board';
 import { BOARDS, BOARD_SIZE, EMPTY_CELLS } from './config';
@@ -230,5 +231,39 @@ describe('nextEmptyIndex', () => {
   it('returns null when no empty cell remains', () => {
     const board: Board = Array.from({ length: 9 }, (_, i) => ({ value: i + 1, prefilled: true }));
     expect(nextEmptyIndex(board, 3)).toBeNull();
+  });
+});
+
+describe('exhaustedSymbols', () => {
+  function emptyBoard(size: number): Board {
+    return Array(size)
+      .fill(null)
+      .map(() => ({ value: null, prefilled: false }));
+  }
+
+  it('is empty for a fresh, empty board', () => {
+    expect(exhaustedSymbols(emptyBoard(9), BOARDS.default)).toEqual(new Set());
+  });
+
+  it('default board (cap 1): a digit placed once is exhausted; others are not', () => {
+    const board = emptyBoard(9);
+    board[0] = { value: 5, prefilled: false };
+    const result = exhaustedSymbols(board, BOARDS.default);
+    expect(result).toEqual(new Set([5]));
+    expect(result.has(1)).toBe(false);
+  });
+
+  it('board6x3 (cap 2): a digit appearing once is not exhausted, twice is', () => {
+    const board = emptyBoard(18);
+    board[0] = { value: 7, prefilled: false };
+    expect(exhaustedSymbols(board, BOARDS.board6x3).has(7)).toBe(false);
+    board[9] = { value: 7, prefilled: false };
+    expect(exhaustedSymbols(board, BOARDS.board6x3).has(7)).toBe(true);
+  });
+
+  it('prefilled cells count toward the cap just as placed values do', () => {
+    const board = emptyBoard(9);
+    board[0] = { value: 3, prefilled: true };
+    expect(exhaustedSymbols(board, BOARDS.default)).toEqual(new Set([3]));
   });
 });

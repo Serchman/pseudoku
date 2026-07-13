@@ -148,6 +148,22 @@ function arePeers(a: number, b: number, config: BoardConfig): boolean {
   return sameRow || sameCol || sameBlock;
 }
 
+// Digits fully used up across the whole board: a digit's board-wide count (prefilled
+// givens + player-placed values) has reached the number of blocks (board.length / symbols).
+export function exhaustedSymbols(board: Board, config: BoardConfig): Set<number> {
+  const cap = board.length / config.symbols;
+  const counts = new Map<number, number>();
+  for (const cell of board) {
+    if (cell.value === null) continue;
+    counts.set(cell.value, (counts.get(cell.value) ?? 0) + 1);
+  }
+  const exhausted = new Set<number>();
+  for (const [value, count] of counts) {
+    if (count >= cap) exhausted.add(value);
+  }
+  return exhausted;
+}
+
 export function findConflicts(board: Board, config: BoardConfig): Set<number> {
   const conflicts = new Set<number>();
   for (let i = 0; i < board.length; i++) {

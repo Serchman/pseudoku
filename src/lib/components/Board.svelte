@@ -3,6 +3,8 @@
   import { toBlocks } from '../game/board';
   import Cell from './Cell.svelte';
 
+  let { onCellPress }: { onCellPress?: (index: number, e: PointerEvent) => void } = $props();
+
   const blocksAcross = $derived(game.activeBoard.cols / game.activeBoard.blockCols);
   // At idle game.board is null; render an empty placeholder board so the grid
   // still reserves its full size (keeps the start overlay aligned over it).
@@ -34,6 +36,7 @@
           error={game.lastEntered === index && conflicts.has(index)}
           conflict={conflicts.has(index) && game.lastEntered !== index}
           onSelect={() => game.select(index)}
+          onPress={(e) => onCellPress?.(index, e)}
         />
       {/each}
     </div>

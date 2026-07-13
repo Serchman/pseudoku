@@ -3,6 +3,7 @@
   import Board from './lib/components/Board.svelte';
   import NumberPad from './lib/components/NumberPad.svelte';
   import Sidebar from './lib/components/Sidebar.svelte';
+  import BoardsSheet from './lib/components/BoardsSheet.svelte';
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
@@ -69,8 +70,10 @@
 
         <div class="board-panel">
           <div class="board-col">
-            {#if game.speedBonusOwned && game.status !== 'idle'}
-              <div class="meter-slot"><SpeedMeter /></div>
+            {#if game.speedBonusOwned}
+              {#key game.activeBoard}
+                <div class="meter-slot" class:reserved={game.status === 'idle'}><SpeedMeter /></div>
+              {/key}
             {/if}
             <div class="board-wrap">
               <Board />
@@ -81,9 +84,11 @@
                 </div>
               {/if}
             </div>
-            {#if game.status !== 'idle'}
+            <!-- Kept mounted (hidden) when idle so the board holds its playing
+                 position — pressing Start reveals the pad without reflowing the grid. -->
+            <div class="pad-slot" class:reserved={game.status === 'idle'}>
               <NumberPad />
-            {/if}
+            </div>
           </div>
 
           {#if game.status === 'complete' && game.lastResult}
@@ -105,6 +110,8 @@
       <aside class="sidebar">
         <Sidebar />
       </aside>
+
+      <BoardsSheet />
     {:else if game.activeView === 'unlocks'}
       <UnlocksView />
     {:else}
@@ -302,8 +309,14 @@
     gap: 16px;
   }
 
-  .meter-slot {
+  .meter-slot,
+  .pad-slot {
     width: 100%;
+  }
+
+  /* Reserve layout space while hidden so the board doesn't shift on Start. */
+  .reserved {
+    visibility: hidden;
   }
 
   .board-wrap {
@@ -387,8 +400,65 @@
   }
 
   @media (max-width: 640px) {
+    /* Phase 2 — compact top bar. Drop the wordmark block; spread the POINTS
+       chip and PRESTIGE button across the full width. */
+    .topbar-left { display: none; }
+    .topbar-center { width: 100%; justify-content: space-between; gap: 10px; }
+
+    .points-box {
+      flex-direction: row;
+      gap: 9px;
+      padding: 8px 13px;
+    }
+    .points-box-label { font-size: 8px; letter-spacing: 2.5px; }
+    .points-box-value { font-size: 18px; }
+
+    .prestige-btn { gap: 8px; padding: 8px 12px; }
+    .prestige-label { font-size: 10.5px; letter-spacing: 1.5px; }
+    .prestige-divider { height: 18px; }
+    .prestige-gain-value {
+      font-size: 15px;
+      text-shadow: 0 0 10px rgba(94, 234, 212, 0.4);
+    }
+    .prestige-gain-label { display: none; }
+
+    /* Phase 3 — segmented tab strip. Restyle the desktop underline tabs into a
+       pill/segmented control; behavior (game.setView) is unchanged. */
+    .tabs {
+      gap: 4px;
+      margin: 4px 12px 0;
+      padding: 4px;
+      background: var(--panel);
+      border: 1px solid var(--border-5);
+      border-radius: 11px;
+    }
+    .tab {
+      flex: 1;
+      justify-content: center;
+      height: 34px;
+      padding: 0;
+      margin-bottom: 0;
+      border: 0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .tab.active {
+      background: var(--accent-fill);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+    }
+
     .board-panel { flex: 1; width: 100%; }
-    .board-col { flex: 1; width: 100%; align-content: space-between; }
+    /* With the NumberPad gone, the column holds only the board (+ optional speed
+       meter). space-between top-pinned that lone row and left dead space below;
+       center it in the reclaimed vertical space instead. justify-content centers
+       the collapsed track on the inline axis (justify-items only centers content
+       within the track, not the track itself). */
+    .board-col { flex: 1; width: 100%; align-content: center; justify-content: center; }
+
+    /* Phase 5 — number entry moves to a later input phase; the docked pad is
+       removed on mobile to free the bottom zone for the drawer. */
+    .pad-slot { display: none; }
   }
 
 </style>

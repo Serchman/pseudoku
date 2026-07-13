@@ -126,4 +126,35 @@
     color: var(--accent);
     font-weight: 700;
   }
+
+  /* Phase 4 — compact the meter on mobile so it sits tightly above the board
+     and stays within the Phase-1 vertical reserve. Additive; desktop unchanged. */
+  @media (max-width: 640px) {
+    .top-row {
+      gap: 9px;
+      margin-bottom: 9px;
+    }
+    .clock,
+    .projected {
+      font-size: 17px;
+    }
+    .arrow {
+      font-size: 12px;
+    }
+    .bar {
+      height: 11px;
+      border-radius: 6px;
+    }
+    .indicator-row {
+      height: 9px;
+    }
+    .indicator {
+      font-size: 9px;
+    }
+    .labels-row {
+      height: 14px;
+      margin-top: 2px;
+      font-size: 9px;
+    }
+  }
 </style>

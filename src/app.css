@@ -193,16 +193,24 @@ body {
 }
 
 @media (max-width: 640px) {
+  /* Compact top bar (Phase 2): collapse the 86px grid into a full-width
+     space-between pill row; the wordmark/version block is hidden in App.svelte.
+     safe-area-inset-top clears the notch. */
+  .topbar {
+    height: auto;
+    display: flex;
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  }
   .body { flex-direction: column; }
-  /* Phase-1 stopgap: the 312px overlay would cover the board. Becomes the
-     bottom-sheet drawer in Phase 5. */
+  /* Desktop aside is hidden on mobile; its board-picker + tier content is
+     served by the BoardsSheet bottom drawer instead (Phase 5). */
   .sidebar { display: none; }
   .board-area {
     justify-content: flex-start;
     gap: 12px;
     width: 100%;
     padding: 12px max(12px, env(safe-area-inset-left))
-             max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right));
+             calc(56px + max(16px, env(safe-area-inset-bottom))) max(12px, env(safe-area-inset-right));
   }
 }
 

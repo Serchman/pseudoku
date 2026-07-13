@@ -324,4 +324,12 @@
   .key {
     color: #cdd8e4;
   }
+
+  /* Phase 5 — no keyboard/NumberPad on mobile, so the key hint is misleading
+     inside the drawer. */
+  @media (max-width: 640px) {
+    .key-hint {
+      display: none;
+    }
+  }
 </style>

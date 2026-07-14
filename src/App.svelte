@@ -8,10 +8,10 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
   import PrestigeModal from './lib/components/PrestigeModal.svelte';
-  import RadialPicker from './lib/components/RadialPicker.svelte';
+  import KeypadPicker from './lib/components/KeypadPicker.svelte';
 
   let showPrestige = $state(false);
-  let picker: RadialPicker | undefined = $state();
+  let picker: KeypadPicker | undefined = $state();
 
   function onKeydown(e: KeyboardEvent) {
     if (game.status !== 'playing') return;
@@ -130,7 +130,7 @@
     />
   {/if}
 
-  <RadialPicker bind:this={picker} />
+  <KeypadPicker bind:this={picker} />
 </div>
 
 <style>

@@ -1,6 +1,7 @@
-import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, type Board } from './board';
+import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, candidates, pickHintCells, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
 import { computeScore, boardWorth, difficultyFactor } from './scoring';
+import { hintCost } from './formula';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
 import { getTierById, canBuyTier } from './tiers';
 import {
@@ -16,6 +17,8 @@ import {
   saveActiveBoard,
   loadOwnedBoards,
   saveOwnedBoards,
+  loadHintCount,
+  saveHintCount,
 } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
@@ -30,6 +33,7 @@ type PlayState = {
   lastResult: LastResult | null;
   startTime: number;
   lastEntered: number | null;
+  hintedCells: number[];
 };
 
 export function createGame() {
@@ -54,6 +58,9 @@ export function createGame() {
 
   let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(initialActiveBoardId)));
   let selectedTierId = $state<string>(loadSelectedTier(initialActiveBoardId));
+
+  let hintCount = $state(loadHintCount(initialActiveBoardId));
+  let hintedCells = $state<number[]>([]);
 
   let startTime = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
@@ -87,6 +94,20 @@ export function createGame() {
     board && status === 'playing' ? findConflicts(board, activeBoard()) : new Set<number>(),
   );
 
+  // Hinted cell index -> its current candidate digits. Recomputes when the board or the
+  // hinted set changes (as the player fills cells the candidates narrow); it does NOT depend
+  // on `elapsed`, so it never recomputes on the 50ms timer tick.
+  const hintedCandidates = $derived.by((): Record<number, number[]> => {
+    if (board === null || status !== 'playing' || hintedCells.length === 0) return {};
+    const all = candidates(board, activeBoard());
+    const map: Record<number, number[]> = {};
+    for (const i of hintedCells) {
+      const c = all[i];
+      if (c !== null) map[i] = c;
+    }
+    return map;
+  });
+
   function stopTimer() {
     if (timer !== null) {
       clearInterval(timer);
@@ -97,6 +118,7 @@ export function createGame() {
   function start() {
     board = generatePuzzle(activeBoard(), selectedTier().emptyCells);
     selected = firstEmptyIndex(board);
+    hintedCells = owned.has('hints') ? pickHintCells(board, hintCount) : [];
     lastEntered = null;
     lastResult = null;
     elapsed = 0;
@@ -172,6 +194,18 @@ export function createGame() {
     saveOwnedTiers(activeBoard().id, [...ownedTiers]);
   }
 
+  function buyHint() {
+    if (status === 'playing') return;          // only between solves
+    if (!owned.has('hints')) return;           // master unlock required
+    if (hintCount >= selectedTier().emptyCells) return; // can't hint more cells than can be empty
+    const cost = hintCost(hintCount + 1, activeBoard());
+    if (pointokus < cost) return;              // affordable
+    pointokus -= cost;
+    hintCount += 1;
+    savePointokus(pointokus);
+    saveHintCount(activeBoardId, hintCount);
+  }
+
   function selectTier(id: string) {
     if (status === 'playing') return;   // can't switch difficulty mid-solve
     if (!ownedTiers.has(id)) return;    // only owned tiers are selectable
@@ -191,10 +225,12 @@ export function createGame() {
       lastResult,
       startTime,
       lastEntered,
+      hintedCells,
     };
     activeBoardId = id;
     ownedTiers = new Set(loadOwnedTiers(id));
     selectedTierId = loadSelectedTier(id);
+    hintCount = loadHintCount(id);
     const saved = boardStates[id];
     board = saved?.board ?? null;
     status = saved?.status ?? 'idle';
@@ -203,6 +239,7 @@ export function createGame() {
     lastResult = saved?.lastResult ?? null;
     startTime = saved?.startTime ?? 0;
     lastEntered = saved?.lastEntered ?? null;
+    hintedCells = saved?.hintedCells ?? [];
     saveActiveBoard(id);
   }
 
@@ -224,6 +261,7 @@ export function createGame() {
     board = null;
     selected = null;
     lastEntered = null;
+    hintedCells = [];
     status = 'idle';
     elapsed = 0;
     lastResult = null;
@@ -289,6 +327,19 @@ export function createGame() {
     get speedBonusOwned() {
       return owned.has('speed-bonus');
     },
+    get hintUnlocked() {
+      return owned.has('hints');
+    },
+    get hintCount() {
+      return hintCount;
+    },
+    get nextHintCost(): number | null {
+      if (hintCount >= selectedTier().emptyCells) return null;
+      return hintCost(hintCount + 1, activeBoard());
+    },
+    get hintedCandidates(): Record<number, number[]> {
+      return hintedCandidates;
+    },
     isOwned(id: string) {
       return owned.has(id);
     },
@@ -332,6 +383,7 @@ export function createGame() {
     setView,
     buyUnlock,
     buyTier,
+    buyHint,
     selectTier,
     selectBoard,
     buyBoard,

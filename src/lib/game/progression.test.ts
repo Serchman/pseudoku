@@ -6,6 +6,7 @@ import { UNLOCKS } from './unlocks';
 // If you retune an N, REF_SPEED_MULT, or a scoring exponent, update these numbers.
 const EXPECTED: Record<string, number> = {
   'speed-bonus': 30,
+  'hints': 100,
   'default:medium': 125,
   'board6x3': 430,
   'default:hard': 800,
@@ -20,6 +21,7 @@ describe('derived unlock ladder', () => {
 
   it('wires derived costs into UNLOCKS, board, and tier configs', () => {
     expect(UNLOCKS.find((u) => u.id === 'speed-bonus')!.cost).toBe(30);
+    expect(UNLOCKS.find((u) => u.id === 'hints')!.cost).toBe(100);
     expect(BOARDS.default.tiers.find((t) => t.id === 'medium')!.cost).toBe(125);
     expect(BOARDS.default.tiers.find((t) => t.id === 'hard')!.cost).toBe(800);
     expect(BOARDS.board6x3.cost).toBe(430);

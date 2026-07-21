@@ -7,7 +7,7 @@ describe('getNextUnlock', () => {
   });
 
   it('returns undefined when all unlocks are owned', () => {
-    expect(getNextUnlock(new Set(['speed-bonus']))).toBeUndefined();
+    expect(getNextUnlock(new Set(['speed-bonus', 'hints']))).toBeUndefined();
   });
 });
 

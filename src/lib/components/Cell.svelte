@@ -6,6 +6,7 @@
     selected,
     error = false,
     conflict = false,
+    hintCandidates,
     onSelect,
     onPress,
   }: {
@@ -13,6 +14,7 @@
     selected: boolean;
     error?: boolean;
     conflict?: boolean;
+    hintCandidates?: number[];
     onSelect: () => void;
     onPress?: (e: PointerEvent) => void;
   } = $props();
@@ -31,6 +33,11 @@
   {cell.value ?? ''}
   {#if selected && cell.value == null}
     <span class="caret"></span>
+  {/if}
+  {#if cell.value == null && hintCandidates && hintCandidates.length > 0}
+    <span class="hint-marks">
+      {#each hintCandidates as d}<span>{d}</span>{/each}
+    </span>
   {/if}
 </button>
 
@@ -51,6 +58,7 @@
     padding: 0;
     cursor: pointer;
     touch-action: none;
+    position: relative;
   }
 
   .cell.prefilled {
@@ -96,5 +104,20 @@
     height: calc(var(--cell) * 0.33);
     background: var(--accent);
     animation: blink 1.1s steps(1) infinite;
+  }
+
+  .hint-marks {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    right: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: calc(var(--cell) * 0.14);
+    line-height: 1.15;
+    color: var(--dim);
+    pointer-events: none;
   }
 </style>

@@ -35,6 +35,7 @@
           selected={game.selected === index}
           error={game.lastEntered === index && conflicts.has(index)}
           conflict={conflicts.has(index) && game.lastEntered !== index}
+          hintCandidates={game.hintedCandidates[index]}
           onSelect={() => game.select(index)}
           onPress={(e) => onCellPress?.(index, e)}
         />

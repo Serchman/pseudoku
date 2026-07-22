@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGame } from './state.svelte';
 import { firstEmptyIndex, nextEmptyIndex } from './board';
+import { loadHintCount } from './storage';
 
 describe('difficulty tiers in game state', () => {
   beforeEach(() => {
@@ -360,3 +361,99 @@ function solveDefault(game: ReturnType<typeof createGame>): void {
 function loadJson(key: string): unknown {
   return JSON.parse(localStorage.getItem(key) ?? 'null');
 }
+
+describe('hint system in game state', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  function withHintsOwned(points: number) {
+    localStorage.setItem('sudoku-incremental:pointokus', String(points));
+    localStorage.setItem('sudoku-incremental:unlocks', JSON.stringify(['speed-bonus', 'hints']));
+    return createGame();
+  }
+
+  it('buyHint does nothing until the hints unlock is owned', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '1000');
+    const game = createGame();
+
+    game.buyHint();
+
+    expect(game.hintCount).toBe(0);
+    expect(game.pointokus).toBe(1000);
+  });
+
+  it('buyHint deducts the escalating cost, increments the count, and persists', () => {
+    const game = withHintsOwned(1000);
+
+    game.buyHint(); // hint 1: 50
+    game.buyHint(); // hint 2: 100
+
+    expect(game.hintCount).toBe(2);
+    expect(game.pointokus).toBe(850); // 1000 - 50 - 100
+    expect(loadHintCount('default')).toBe(2);
+  });
+
+  it('buyHint caps at the selected tier empty-cell count (easy = 3)', () => {
+    const game = withHintsOwned(5000);
+
+    game.buyHint(); // 50
+    game.buyHint(); // 100
+    game.buyHint(); // 200 → count 3 (= easy empties)
+    const afterThree = game.pointokus;
+    game.buyHint(); // blocked
+
+    expect(game.hintCount).toBe(3);
+    expect(game.nextHintCost).toBeNull();
+    expect(game.pointokus).toBe(afterThree);
+  });
+
+  it('buyHint is blocked while a solve is in progress', () => {
+    const game = withHintsOwned(1000);
+
+    game.start();
+    game.buyHint();
+
+    expect(game.hintCount).toBe(0);
+    game.resetAll(); // stop the timer
+  });
+
+  it('hint count is per board and survives resetAll', () => {
+    const game = withHintsOwned(1000);
+    game.buyHint();
+    expect(game.hintCount).toBe(1);
+
+    game.resetAll();
+    expect(game.hintCount).toBe(1); // persistent, like tiers
+    expect(loadHintCount('default')).toBe(1);
+  });
+
+  it('start() reveals candidates for min(hintCount, empties) empty cells', () => {
+    localStorage.setItem('sudoku-incremental:unlocks', JSON.stringify(['speed-bonus', 'hints']));
+    localStorage.setItem('sudoku-incremental:hints:default', '2');
+    const game = createGame();
+
+    game.start();
+
+    const hinted = game.hintedCandidates;
+    const keys = Object.keys(hinted).map(Number);
+    expect(keys).toHaveLength(2); // easy = 3 empties, capped by count 2
+    for (const i of keys) {
+      expect(game.board![i].value).toBeNull();
+      expect(game.board![i].prefilled).toBe(false);
+      expect(hinted[i].length).toBeGreaterThan(0);
+      expect(hinted[i].every((d) => d >= 1 && d <= 9)).toBe(true);
+    }
+    game.resetAll();
+  });
+
+  it('exposes no hinted candidates when the unlock is not owned', () => {
+    localStorage.setItem('sudoku-incremental:hints:default', '2');
+    const game = createGame(); // no hints unlock
+
+    game.start();
+
+    expect(Object.keys(game.hintedCandidates)).toHaveLength(0);
+    game.resetAll();
+  });
+});

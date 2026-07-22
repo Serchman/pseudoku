@@ -7,6 +7,8 @@ import {
   firstEmptyIndex,
   nextEmptyIndex,
   exhaustedSymbols,
+  candidates,
+  pickHintCells,
   type Board,
 } from './board';
 import { BOARDS, BOARD_SIZE, EMPTY_CELLS } from './config';
@@ -265,5 +267,58 @@ describe('exhaustedSymbols', () => {
     const board = emptyBoard(9);
     board[0] = { value: 3, prefilled: true };
     expect(exhaustedSymbols(board, BOARDS.default)).toEqual(new Set([3]));
+  });
+});
+
+describe('candidates', () => {
+  // Build a single-block 3×3 board from an explicit value list (null = empty).
+  function board3(values: (number | null)[]): Board {
+    return values.map((v) => ({ value: v, prefilled: v !== null }));
+  }
+
+  it('lists ascending legal digits for empty cells in the single 3×3 block', () => {
+    const b = board3([1, 2, 3, 4, 5, 6, null, null, null]);
+    const c = candidates(b, BOARDS.default);
+    expect(c[6]).toEqual([7, 8, 9]);
+    expect(c[7]).toEqual([7, 8, 9]);
+    expect(c[8]).toEqual([7, 8, 9]);
+  });
+
+  it('returns null for filled and prefilled cells', () => {
+    const b = board3([1, 2, 3, 4, 5, 6, null, null, null]);
+    const c = candidates(b, BOARDS.default);
+    expect(c[0]).toBeNull();
+  });
+
+  it('excludes same-row values across a block boundary on the 6×3 (row constraint)', () => {
+    // 6×3: 18 cells, all empty except cell 0 (row 0, block 0) = 5.
+    const values: (number | null)[] = Array(18).fill(null);
+    values[0] = 5;
+    const b: Board = values.map((v) => ({ value: v, prefilled: v !== null }));
+    const c = candidates(b, BOARDS.board6x3);
+    // cell 3 is row 0, block 1 — shares the row with cell 0, so 5 is excluded.
+    expect(c[3]).toEqual([1, 2, 3, 4, 6, 7, 8, 9]);
+    // cell 15 is row 2, block 1 — no shared row/col/block, so all digits are legal.
+    expect(c[15]).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+});
+
+describe('pickHintCells', () => {
+  it('picks n distinct empty indices when enough empties exist', () => {
+    const b = generatePuzzle(BOARDS.default, 3);
+    const picked = pickHintCells(b, 2);
+    expect(picked).toHaveLength(2);
+    expect(new Set(picked).size).toBe(2);
+    for (const i of picked) expect(b[i].value).toBeNull();
+  });
+
+  it('clamps to the number of empty cells', () => {
+    const b = generatePuzzle(BOARDS.default, 3);
+    expect(pickHintCells(b, 5)).toHaveLength(3);
+  });
+
+  it('returns an empty array for n = 0', () => {
+    const b = generatePuzzle(BOARDS.default, 3);
+    expect(pickHintCells(b, 0)).toEqual([]);
   });
 });

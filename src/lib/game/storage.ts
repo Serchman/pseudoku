@@ -91,3 +91,20 @@ export function loadOwnedBoards(): string[] {
 export function saveOwnedBoards(ids: string[]): void {
   localStorage.setItem(OWNED_BOARDS_KEY, JSON.stringify(ids));
 }
+
+// Per-board hint count — how many random cells reveal candidate marks. Persistent
+// (survives resetAll, like difficulty tiers). Defaults to 0.
+function hintCountKey(boardId: string): string {
+  return `sudoku-incremental:hints:${boardId}`;
+}
+
+export function loadHintCount(boardId: string): number {
+  const raw = localStorage.getItem(hintCountKey(boardId));
+  if (raw === null) return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+}
+
+export function saveHintCount(boardId: string, n: number): void {
+  localStorage.setItem(hintCountKey(boardId), String(n));
+}

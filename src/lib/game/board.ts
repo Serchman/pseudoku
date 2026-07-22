@@ -176,3 +176,35 @@ export function findConflicts(board: Board, config: BoardConfig): Set<number> {
   }
   return conflicts;
 }
+
+// Legal digits per cell: for each EMPTY cell, the symbols 1..config.symbols that no peer
+// (same row/col/block) already uses — the same peer relation findConflicts checks against,
+// so a listed candidate is exactly a digit that would not create a conflict. Cells that
+// already hold a value (filled or prefilled) return null. Pure; no solution retained.
+export function candidates(board: Board, config: BoardConfig): (number[] | null)[] {
+  const result: (number[] | null)[] = [];
+  for (let i = 0; i < board.length; i++) {
+    if (board[i].value !== null) {
+      result.push(null);
+      continue;
+    }
+    const used = new Set<number>();
+    for (let j = 0; j < board.length; j++) {
+      const v = board[j].value;
+      if (v !== null && j !== i && arePeers(i, j, config)) used.add(v);
+    }
+    const legal: number[] = [];
+    for (let s = 1; s <= config.symbols; s++) if (!used.has(s)) legal.push(s);
+    result.push(legal);
+  }
+  return result;
+}
+
+// Up to `n` distinct random indices of empty (value === null) cells. Reuses the same
+// shuffle as puzzle generation; clamps to the number of empties (so n larger than the
+// board's blanks, or n = 0, is safe).
+export function pickHintCells(board: Board, n: number): number[] {
+  const empties: number[] = [];
+  for (let i = 0; i < board.length; i++) if (board[i].value === null) empties.push(i);
+  return shuffle(empties).slice(0, Math.min(n, empties.length));
+}

@@ -9,6 +9,8 @@ export const REF_CELLS = 9;          // reference board size (3×3): boardWorth 
 export const REF_DENSITY = 1 / 3;    // reference blank density (Easy): difficultyFactor = 1 here
 export const REF_SPEED_MULT = 2.5;   // typical engaged-play speed multiplier folded into gate
                                      // costs bought after Speed Bonus (retune knob for automation etc.)
+export const HINT_BASE_N = 2;        // first hint ≈ this many easy-tier solves' worth
+export const HINT_GROWTH = 2;        // each successive hint multiplies the cost by this
 
 function sizeWorth(totalCells: number): number {
   return (totalCells / REF_CELLS) ** SIZE_EXP;
@@ -45,4 +47,13 @@ export function gateCost(
   const diff = difficultyFactor(anchorEmptyCells, cells);
   const speed = withSpeed ? REF_SPEED_MULT : 1;
   return round5(n * POINT_SCALE * worth * diff * speed);
+}
+
+// Cost of the `level`-th hint (1-indexed) on a board. Anchored to the board's worth (the
+// easy-tier density is the reference, so difficulty is folded out), escalating geometrically
+// per level and folding in REF_SPEED_MULT like the other derived gate costs.
+export function hintCost(level: number, board: BoardConfig): number {
+  return round5(
+    POINT_SCALE * boardWorth(board) * HINT_BASE_N * HINT_GROWTH ** (level - 1) * REF_SPEED_MULT,
+  );
 }

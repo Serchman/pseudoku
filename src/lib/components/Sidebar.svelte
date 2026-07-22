@@ -73,6 +73,34 @@
     </div>
   </div>
 
+  {#if game.hintUnlocked}
+    <div class="divider"></div>
+
+    <div class="unlocks">
+      <div class="unlocks-head">
+        <span>HINTS</span>
+      </div>
+      <div class="unlocks-sub">Reveal candidate digits in random cells.</div>
+      <div class="unlocks-list">
+        <div class="unlock-row" class:affordable={game.nextHintCost !== null && game.status !== 'playing' && game.pointokus >= game.nextHintCost}>
+          <div>
+            <div class="unlock-title">Hints per board</div>
+            <div class="unlock-sub">{game.hintCount} active</div>
+          </div>
+          {#if game.nextHintCost !== null}
+            <button
+              class="tier-btn buy"
+              onclick={() => game.buyHint()}
+              disabled={game.status === 'playing' || game.pointokus < game.nextHintCost}
+            >{game.nextHintCost} P</button>
+          {:else}
+            <span class="unlock-owned">MAX</span>
+          {/if}
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <div class="key-hint">
     <div>› click cell, type <span class="key">1–9</span></div>
     <div>› <span class="key">⌫</span> clears · <span class="key">↹</span> next cell</div>

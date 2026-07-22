@@ -10,6 +10,7 @@ export interface Unlock {
 // Ordered, data-driven (future tree nodes slot in). Phase 1 seed:
 export const UNLOCKS: Unlock[] = [
   { id: 'speed-bonus', title: 'Speed Bonus', description: 'Solve time now boosts points.', cost: GATE_COSTS['speed-bonus'] },
+  { id: 'hints', title: 'Hints', description: 'Reveal candidate digits in random cells — buy more per board.', cost: GATE_COSTS['hints'] },
 ];
 
 // "Next unlock" = first unowned entry (or undefined when all owned).

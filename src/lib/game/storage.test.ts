@@ -13,6 +13,8 @@ import {
   saveActiveBoard,
   loadOwnedBoards,
   saveOwnedBoards,
+  loadHintCount,
+  saveHintCount,
 } from './storage';
 
 describe('pointokus persistence', () => {
@@ -133,5 +135,27 @@ describe('owned boards persistence', () => {
   it('returns [] when the stored value is valid JSON but not an array', () => {
     localStorage.setItem('sudoku-incremental:owned-boards', '{"a":1}');
     expect(loadOwnedBoards()).toEqual([]);
+  });
+});
+
+describe('hint count persistence', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('defaults to 0 when unset', () => {
+    expect(loadHintCount('default')).toBe(0);
+  });
+
+  it('round-trips per board and stays isolated', () => {
+    saveHintCount('default', 3);
+    saveHintCount('board6x3', 1);
+    expect(loadHintCount('default')).toBe(3);
+    expect(loadHintCount('board6x3')).toBe(1);
+  });
+
+  it('treats corrupt values as 0', () => {
+    localStorage.setItem('sudoku-incremental:hints:default', 'not-a-number');
+    expect(loadHintCount('default')).toBe(0);
   });
 });

@@ -35,8 +35,8 @@
     <span class="caret"></span>
   {/if}
   {#if cell.value == null && hintCandidates && hintCandidates.length > 0}
-    <span class="hint-marks">
-      {#each hintCandidates as d}<span>{d}</span>{/each}
+    <span class="hint-grid">
+      {#each Array.from({ length: 9 }, (_, i) => i + 1) as d}<span>{hintCandidates.includes(d) ? d : ''}</span>{/each}
     </span>
   {/if}
 </button>
@@ -106,18 +106,22 @@
     animation: blink 1.1s steps(1) infinite;
   }
 
-  .hint-marks {
+  .hint-grid {
     position: absolute;
-    top: 3px;
-    left: 4px;
-    right: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 3px;
+    inset: 2px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     font-family: 'JetBrains Mono', monospace;
-    font-size: calc(var(--cell) * 0.14);
-    line-height: 1.15;
+    font-size: calc(var(--cell) * 0.2);
+    line-height: 1;
     color: var(--dim);
     pointer-events: none;
+  }
+
+  .hint-grid > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

@@ -16,6 +16,8 @@ import {
   saveActiveBoard,
   loadOwnedBoards,
   saveOwnedBoards,
+  loadRecord,
+  saveRecord,
 } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
@@ -51,6 +53,13 @@ export function createGame() {
     .filter((b) => b.cost === 0)
     .map((b) => b.id);
   let ownedBoards = $state<Set<string>>(new Set([...freeBoards, ...loadOwnedBoards()]));
+
+  const initialRecords: Record<string, number> = {};
+  for (const id of BOARD_ORDER) {
+    const r = loadRecord(id);
+    if (r !== null) initialRecords[id] = r;
+  }
+  let records = $state<Record<string, number>>(initialRecords);
 
   let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(initialActiveBoardId)));
   let selectedTierId = $state<string>(loadSelectedTier(initialActiveBoardId));
@@ -141,6 +150,13 @@ export function createGame() {
     elapsed = timeMs;
     const result = computeScore(timeMs, activeBoard().brackets, scoreOpts());
     pendingPoints += result.points;
+
+    const prevBest = records[activeBoardId];
+    if (prevBest === undefined || timeMs < prevBest) {
+      records = { ...records, [activeBoardId]: timeMs }; // reassign so $derived recomputes
+      saveRecord(activeBoardId, timeMs);
+    }
+
     lastResult = {
       points: result.points,
       timeMs,
@@ -235,6 +251,9 @@ export function createGame() {
     },
     get pendingPoints() {
       return pendingPoints;
+    },
+    bestTime(boardId: string): number | null {
+      return records[boardId] ?? null;
     },
     get prestigeBreakdown(): { id: string; name: string; points: number }[] {
       return BOARD_ORDER.flatMap((id) => {

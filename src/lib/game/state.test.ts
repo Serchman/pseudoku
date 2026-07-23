@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGame } from './state.svelte';
 import { firstEmptyIndex, nextEmptyIndex } from './board';
 
@@ -339,6 +339,46 @@ describe('prestige breakdown', () => {
 
     expect(game.prestigeBreakdown).toEqual([]);
     expect(game.pendingPoints).toBe(0);
+  });
+});
+
+describe('best-time tracking', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('records the best time, only improves on a faster solve, and survives resetAll', () => {
+    // performance.now() is called once in start() and once in the completing checkWin().
+    // Script pairs so each solve has a known duration: 2000ms, 5000ms (slower), 1500ms (faster).
+    const times = [1000, 3000, 1000, 6000, 1000, 2500];
+    let i = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
+
+    const game = createGame();
+
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(2000);
+
+    game.resetAll(); // record must persist across this
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(2000); // 5000ms is slower → unchanged
+
+    game.resetAll();
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(1500); // 1500ms is faster → improved
+
+    expect(Number(localStorage.getItem('sudoku-incremental:record:default'))).toBe(1500);
+
+    game.resetAll();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null for a board with no record', () => {
+    const game = createGame();
+    expect(game.bestTime('board6x3')).toBe(null);
   });
 });
 

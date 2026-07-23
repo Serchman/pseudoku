@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeScore, speedFactor, speedComponents, boardWorth, difficultyFactor } from './scoring';
+import { computeScore, speedFactor, speedComponents, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
 import { BOARDS, POINT_SCALE } from './config';
 
 const brackets = BOARDS.default.brackets;
@@ -124,5 +124,32 @@ describe('difficultyFactor', () => {
   it('is identical for equal densities across board sizes', () => {
     // 3/9 and 6/18 are both 1/3
     expect(difficultyFactor(3, 9)).toBeCloseTo(difficultyFactor(6, 18), 5);
+  });
+});
+
+describe('recordTerm', () => {
+  it('is 1 (neutral) when there is no record', () => {
+    expect(recordTerm(null, BOARDS.default)).toBe(1);
+  });
+
+  it('equals the speed factor at the best time', () => {
+    expect(recordTerm(2000, BOARDS.default)).toBeCloseTo(8, 5);
+    expect(recordTerm(3000, BOARDS.default)).toBeCloseTo(5, 5);
+    expect(recordTerm(2500, BOARDS.default)).toBeCloseTo(6.1237, 3);
+  });
+});
+
+describe('globalRecordMultiplier', () => {
+  it('is 1 when the records unlock is not owned, regardless of terms', () => {
+    expect(globalRecordMultiplier([8, 5], false)).toBe(1);
+  });
+
+  it('is 1 when owned but there are no terms', () => {
+    expect(globalRecordMultiplier([], true)).toBe(1);
+  });
+
+  it('sums 1 + Σ(term − 1) over the terms when owned', () => {
+    expect(globalRecordMultiplier([8], true)).toBeCloseTo(8, 5);
+    expect(globalRecordMultiplier([8, 5], true)).toBeCloseTo(12, 5); // 1 + 7 + 4
   });
 });

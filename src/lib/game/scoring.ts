@@ -1,4 +1,4 @@
-import type { Bracket } from './config';
+import type { Bracket, BoardConfig } from './config';
 import { EXP_BASE, POINT_SCALE } from './config';
 
 // boardWorth / difficultyFactor now live in formula.ts; re-export so existing
@@ -59,4 +59,16 @@ export function computeScore(
   const points = Math.round(base * bracketMult * expFactor * opts.globalMultiplier);
 
   return { points, bracketMult, expFactor, speedApplied: true };
+}
+
+// A board's record term: the speed multiple at its best-ever solve time. No record → 1.
+export function recordTerm(bestMs: number | null, board: BoardConfig): number {
+  return bestMs === null ? 1 : speedFactor(bestMs, board.brackets);
+}
+
+// Aggregate per-board record terms into one multiplier. Sum form: 1 + Σ(term − 1).
+// Not owned → 1 (the feature is inert until the unlock is bought).
+export function globalRecordMultiplier(terms: number[], recordsOwned: boolean): number {
+  if (!recordsOwned) return 1;
+  return 1 + terms.reduce((sum, t) => sum + (t - 1), 0);
 }

@@ -382,6 +382,50 @@ describe('best-time tracking', () => {
   });
 });
 
+describe('record multiplier and banking', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('defaults to 1 with no records and no unlock', () => {
+    const game = createGame();
+    expect(game.recordMultiplier).toBe(1);
+  });
+
+  it('stays 1 until the records unlock is owned, then reflects best times retroactively; resetAll banks pending × multiplier', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '100');
+    const times = [1000, 3000]; // one 2000ms solve
+    let i = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
+
+    const game = createGame();
+
+    game.start();
+    solveDefault(game); // sets record 2000ms unconditionally; pending = 10 (speed bonus not owned → base)
+    expect(game.bestTime('default')).toBe(2000);
+    expect(game.pendingPoints).toBe(10);
+    expect(game.recordMultiplier).toBe(1); // unlock not owned yet
+    expect(game.lastWasRecord).toBe(true);
+
+    game.buyUnlock('records'); // 100 → 0
+    expect(game.recordMultiplier).toBeCloseTo(8, 5); // retroactive: term at 2000ms = 8
+
+    game.resetAll(); // banks round(10 × 8) = 80
+    expect(game.pointokus).toBe(80);
+    expect(game.pendingPoints).toBe(0);
+    expect(game.bestTime('default')).toBe(2000); // records survive resetAll
+
+    vi.restoreAllMocks();
+  });
+
+  it('recordStats lists owned boards with their best time and term', () => {
+    const game = createGame();
+    const stats = game.recordStats;
+    expect(stats).toHaveLength(1); // only the free default board is owned
+    expect(stats[0]).toMatchObject({ id: 'default', bestMs: null, term: 1 });
+  });
+});
+
 // Completes the active default board: it is a single block holding a permutation
 // of 1..9, so the blank cells' values are exactly the numbers missing from the
 // filled cells (any bijective assignment keeps all nine distinct).

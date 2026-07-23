@@ -1,5 +1,9 @@
 <script lang="ts">
   import { game } from '../game/state.svelte';
+
+  function fmtTime(ms: number | null): string {
+    return ms === null ? '—' : `${(ms / 1000).toFixed(2)}s`;
+  }
 </script>
 
 <div class="sidebar-panel">
@@ -72,6 +76,18 @@
       {/each}
     </div>
   </div>
+
+  {#if game.isOwned('records')}
+    <div class="divider"></div>
+
+    <div class="stats">
+      <div class="unlocks-head"><span>STATS</span></div>
+      <div class="stat-line">
+        <span class="stat-key">Fastest time</span>
+        <span class="stat-val">{fmtTime(game.bestTime(game.activeBoard.id))}</span>
+      </div>
+    </div>
+  {/if}
 
   <div class="key-hint">
     <div>› click cell, type <span class="key">1–9</span></div>
@@ -331,5 +347,33 @@
     .key-hint {
       display: none;
     }
+  }
+
+  .stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel-3);
+    border: 1px solid #181e27;
+    border-radius: 8px;
+    padding: 11px 12px;
+  }
+
+  .stat-key {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
   }
 </style>

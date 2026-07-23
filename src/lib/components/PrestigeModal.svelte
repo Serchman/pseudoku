@@ -2,11 +2,15 @@
   let {
     pending,
     breakdown,
+    multiplier,
+    total,
     onconfirm,
     oncancel,
   }: {
     pending: number;
     breakdown: { id: string; name: string; points: number }[];
+    multiplier: number;
+    total: number;
     onconfirm: () => void;
     oncancel: () => void;
   } = $props();
@@ -48,9 +52,20 @@
 
       <div class="divider"></div>
 
+      {#if multiplier !== 1}
+        <div class="mult-row">
+          <span class="mult-label">SUBTOTAL</span>
+          <span class="mult-value">+{pending}</span>
+        </div>
+        <div class="mult-row">
+          <span class="mult-label">× RECORD</span>
+          <span class="mult-value accent">×{multiplier.toFixed(2)}</span>
+        </div>
+      {/if}
+
       <div class="total-row">
         <span class="total-label">TOTAL GAIN</span>
-        <span class="total-value">+{pending}</span>
+        <span class="total-value">+{total}</span>
       </div>
 
       <div class="actions">
@@ -164,6 +179,28 @@
   .empty-row {
     font-size: 12px;
     color: var(--muted-2);
+  }
+
+  .mult-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .mult-label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--muted-2);
+  }
+
+  .mult-value {
+    font-size: 13px;
+    color: #c7d2df;
+  }
+
+  .mult-value.accent {
+    color: var(--accent);
   }
 
   .total-row {

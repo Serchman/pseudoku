@@ -129,6 +129,8 @@
     <PrestigeModal
       pending={game.pendingPoints}
       breakdown={game.prestigeBreakdown}
+      multiplier={game.recordMultiplier}
+      total={game.bankPreview}
       onconfirm={() => { game.resetAll(); showPrestige = false; }}
       oncancel={() => (showPrestige = false)}
     />

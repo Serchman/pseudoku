@@ -47,6 +47,7 @@ export interface ProgressionEntry {
 // availability do not depend on list position. See the unlock-cost-rebalance design doc.
 export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'speed-bonus', n: 3, anchor: 'default:easy', withSpeed: false, requires: [] },
+  { gate: 'records', n: 4, anchor: 'default:easy', withSpeed: true, requires: ['speed-bonus'] },
   { gate: 'default:medium', n: 5, anchor: 'default:easy', withSpeed: true, requires: ['default:easy'] },
   { gate: 'board6x3', n: 8, anchor: 'default:medium', withSpeed: true, requires: ['default:medium'] },
   { gate: 'default:hard', n: 13, anchor: 'board6x3:easy', withSpeed: true, requires: ['default:medium'] },

@@ -6,6 +6,7 @@ import { UNLOCKS } from './unlocks';
 // If you retune an N, REF_SPEED_MULT, or a scoring exponent, update these numbers.
 const EXPECTED: Record<string, number> = {
   'speed-bonus': 30,
+  'records': 100,
   'default:medium': 125,
   'board6x3': 430,
   'default:hard': 800,

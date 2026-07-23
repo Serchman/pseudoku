@@ -100,6 +100,7 @@
               <span class="completion-points">+{game.lastResult.points} P</span>
               <span class="completion-time">{(game.lastResult.timeMs / 1000).toFixed(1)}s</span>
               {#if game.lastResult.speedApplied}<span class="completion-speed">SPEED ×{game.lastResult.bracketMult}</span>{/if}
+              {#if game.lastWasRecord}<span class="completion-record">★ NEW RECORD!</span>{/if}
             </div>
           {/if}
 
@@ -391,6 +392,26 @@
     padding: 2px 8px;
     font-size: 11px;
     letter-spacing: 0.5px;
+  }
+
+  .completion-record {
+    color: var(--points);
+    background: rgba(240, 200, 100, 0.1);
+    border: 1px solid var(--points);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    animation: recordpop 0.4s ease-out;
+  }
+
+  @keyframes recordpop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .completion-record { animation: none; }
   }
 
   .board-footer {

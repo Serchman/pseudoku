@@ -21,7 +21,7 @@ import {
 } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
-type ViewId = 'board' | 'unlocks' | 'settings';
+type ViewId = 'board' | 'unlocks' | 'settings' | 'statistics';
 type LastResult = { points: number; timeMs: number; bracketMult: number; speedApplied: boolean };
 // Per-board play state, preserved across board switches (in-memory, cleared on resetAll).
 type PlayState = {

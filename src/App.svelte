@@ -6,6 +6,7 @@
   import BoardsSheet from './lib/components/BoardsSheet.svelte';
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
+  import StatisticsView from './lib/components/StatisticsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
   import PrestigeModal from './lib/components/PrestigeModal.svelte';
   import KeypadPicker from './lib/components/KeypadPicker.svelte';
@@ -62,6 +63,7 @@
       Unlocks
       {#if game.nextUnlock && game.pointokus >= game.nextUnlock.cost}<span class="afford-dot"></span>{/if}
     </button>
+    <button class="tab" class:active={game.activeView === 'statistics'} onclick={() => game.setView('statistics')}>Statistics</button>
     <button class="tab" class:active={game.activeView === 'settings'} onclick={() => game.setView('settings')}>Settings</button>
   </nav>
 
@@ -116,6 +118,8 @@
       <BoardsSheet />
     {:else if game.activeView === 'unlocks'}
       <UnlocksView />
+    {:else if game.activeView === 'statistics'}
+      <StatisticsView />
     {:else}
       <SettingsView />
     {/if}

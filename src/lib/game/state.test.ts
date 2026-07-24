@@ -393,7 +393,7 @@ describe('record multiplier and banking', () => {
   });
 
   it('stays 1 until the records unlock is owned, then reflects best times retroactively; resetAll banks pending × multiplier', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '100');
+    localStorage.setItem('sudoku-incremental:pointokus', '2850');
     const times = [1000, 3000]; // one 2000ms solve
     let i = 0;
     vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
@@ -407,7 +407,7 @@ describe('record multiplier and banking', () => {
     expect(game.recordMultiplier).toBe(1); // unlock not owned yet
     expect(game.lastWasRecord).toBe(true);
 
-    game.buyUnlock('records'); // 100 → 0
+    game.buyUnlock('records'); // 2850 → 0
     expect(game.recordMultiplier).toBeCloseTo(8, 5); // retroactive: term at 2000ms = 8
 
     game.resetAll(); // banks round(10 × 8) = 80

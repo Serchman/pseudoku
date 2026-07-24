@@ -245,7 +245,8 @@ git commit -m "feat: recordTerm and globalRecordMultiplier scoring helpers"
 
 ### Task 3: `records` master unlock in the economy
 
-Add the unlock to the progression (for a derived cost) and to the unlock tree, right after Speed Bonus.
+Add the unlock to the progression (for a derived cost) and to the unlock tree, as the phase-3
+capstone after `board6x3:hard` (economic gating: the cost is the gate).
 
 **Files:**
 - Modify: `src/lib/game/config.ts:48-55` (the `PROGRESSION` array)
@@ -253,7 +254,8 @@ Add the unlock to the progression (for a derived cost) and to the unlock tree, r
 - Test: `src/lib/game/progression.test.ts`, `src/lib/game/unlocks.test.ts`
 
 **Interfaces:**
-- Produces: `GATE_COSTS['records'] === 100`; `UNLOCKS` contains `{ id: 'records', … }` at index 1.
+- Produces: `GATE_COSTS['records'] === 2850`; `UNLOCKS` contains `{ id: 'records', … }` at index 1
+  (last of the two master unlocks).
 
 - [ ] **Step 1: Update the failing tests**
 

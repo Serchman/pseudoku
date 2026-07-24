@@ -26,8 +26,8 @@ automation tree.
 
 ## Feature summary
 
-A purchasable **master unlock** (`records`, in the Unlocks tree, gated after Speed Bonus). Once
-owned:
+A purchasable **master unlock** (`records`, in the Unlocks tree, the phase-3 capstone gated by cost
+after the 6×3 board). Once owned:
 
 - Each board's **fastest-ever solve time** yields a **record term** — the same speed multiple the
   scoring already computes (`bracketMult × expFactor`), evaluated at the best time instead of the
@@ -119,17 +119,19 @@ Two boards both at ~8.16 → global `1 + 7.16 + 7.16 ≈ 15.3×` (sum form).
 
 ### 3. Economy — master unlock (`config.ts`, `unlocks.ts`)
 
-Add a `records` gate to `PROGRESSION` right after `speed-bonus` so its cost derives from the
-existing `gateCost` machinery (no hardcoded number):
+Add a `records` gate to `PROGRESSION` as the **phase-3 capstone**, after `board6x3:hard` (the last
+board gate), so its cost derives from the existing `gateCost` machinery (no hardcoded number):
 
 ```ts
-{ gate: 'records', n: 4, anchor: 'default:easy', withSpeed: true, requires: ['speed-bonus'] }
+{ gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] }
 ```
 
-→ `4 × POINT_SCALE(10) × worth(1) × diff(1) × REF_SPEED_MULT(2.5)` = **100 P** (seed, tunable).
-This sits between Speed Bonus (30 P) and the medium tier (125 P) — a meaningful buy right after
-Speed Bonus. Add the matching `UNLOCKS` entry (order `[speed-bonus, records]`, so `getNextUnlock`
-offers it second):
+→ `13 × POINT_SCALE(10) × worth(2.46) × diff(3.56) × REF_SPEED_MULT(2.5)` = **2850 P** (seed, tunable).
+This sits just above the last board gate (2650 P) — the mastery multiplier is a phase-3 purchase
+you work toward after the 6×3 board, not an early buy, matching the phase-3 framing in Context.
+Gating is economic only (the 2850 P cost is the gate); `requires` is documentation for a future
+hard lock — the codebase does not yet enforce it. Keep the `UNLOCKS` entry last (order
+`[speed-bonus, records]`, so `getNextUnlock` offers it after Speed Bonus):
 
 ```ts
 { id: 'records', title: 'Records',
@@ -227,7 +229,7 @@ Per CLAUDE.md, components are **not** unit-tested (no render harness; out of sco
 
 - **Aggregation:** sum (`1 + Σ(term−1)`, default) vs. product (`Π term`, steeper — two maxed
   boards ≈ 64× instead of ~15×). Start with sum; steepen if it feels flat.
-- **Unlock cost:** `records` `n` (seed 4 → 100 P).
+- **Unlock cost:** `records` `n` (seed 13, anchored to `board6x3:hard` → 2850 P).
 - **Term cap:** the ~12× ceiling falls out of the fastest bracket + `EXP_BASE`; no separate cap
   needed, but the plan may clamp if product aggregation makes numbers explode.
 

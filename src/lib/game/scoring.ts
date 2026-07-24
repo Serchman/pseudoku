@@ -1,5 +1,5 @@
 import type { Bracket, BoardConfig } from './config';
-import { EXP_BASE, POINT_SCALE } from './config';
+import { EXP_BASE, POINT_SCALE, RECORD_WEIGHT } from './config';
 
 // boardWorth / difficultyFactor now live in formula.ts; re-export so existing
 // importers (state.svelte.ts, scoring.test.ts) keep importing them from here.
@@ -61,9 +61,21 @@ export function computeScore(
   return { points, bracketMult, expFactor, speedApplied: true };
 }
 
-// A board's record term: the speed multiple at its best-ever solve time. No record → 1.
+// A board's theoretical-max speed factor: fastest bracket's mult × the max intra-bracket
+// exp factor (EXP_BASE, reached as t → the fast end of that bracket). Used to normalize
+// the record term into a 0..1 fraction of "best possible".
+function speedFactorMax(board: BoardConfig): number {
+  const maxMult = Math.max(...board.brackets.map((b) => b.mult));
+  return maxMult * EXP_BASE;
+}
+
+// A board's record contribution: 1 + a small bonus scaled by how close its best-ever solve
+// is to the board's theoretical-best speed. RECORD_WEIGHT is the cap (best time → +12.5%);
+// a slow record → +0%. No record → 1 (neutral).
 export function recordTerm(bestMs: number | null, board: BoardConfig): number {
-  return bestMs === null ? 1 : speedFactor(bestMs, board.brackets);
+  if (bestMs === null) return 1;
+  const max = speedFactorMax(board);
+  return 1 + RECORD_WEIGHT * (speedFactor(bestMs, board.brackets) - 1) / (max - 1);
 }
 
 // Aggregate per-board record terms into one multiplier. Sum form: 1 + Σ(term − 1).

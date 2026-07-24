@@ -408,10 +408,10 @@ describe('record multiplier and banking', () => {
     expect(game.lastWasRecord).toBe(true);
 
     game.buyUnlock('records'); // 2850 → 0
-    expect(game.recordMultiplier).toBeCloseTo(8, 5); // retroactive: term at 2000ms = 8
+    expect(game.recordMultiplier).toBeCloseTo(1.079545, 5); // retroactive: term at 2000ms is the small record bonus
 
-    game.resetAll(); // banks round(10 × 8) = 80
-    expect(game.pointokus).toBe(80);
+    game.resetAll(); // banks round(10 × 1.079545) = 11
+    expect(game.pointokus).toBe(11);
     expect(game.pendingPoints).toBe(0);
     expect(game.bestTime('default')).toBe(2000); // records survive resetAll
 

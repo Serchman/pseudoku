@@ -132,16 +132,16 @@ describe('recordTerm', () => {
     expect(recordTerm(null, BOARDS.default)).toBe(1);
   });
 
-  it('equals the speed factor at the best time', () => {
-    expect(recordTerm(2000, BOARDS.default)).toBeCloseTo(8, 5);
-    expect(recordTerm(3000, BOARDS.default)).toBeCloseTo(5, 5);
-    expect(recordTerm(2500, BOARDS.default)).toBeCloseTo(6.1237, 3);
+  it('is a small bonus scaled by closeness to the board\'s best-possible speed', () => {
+    expect(recordTerm(2000, BOARDS.default)).toBeCloseTo(1.079545, 5); // speedFactor 8
+    expect(recordTerm(3000, BOARDS.default)).toBeCloseTo(1.045455, 5); // speedFactor 5
+    expect(recordTerm(2500, BOARDS.default)).toBeCloseTo(1.058224, 5); // speedFactor 6.1237
   });
 });
 
 describe('globalRecordMultiplier', () => {
   it('is 1 when the records unlock is not owned, regardless of terms', () => {
-    expect(globalRecordMultiplier([8, 5], false)).toBe(1);
+    expect(globalRecordMultiplier([1.08, 1.05], false)).toBe(1);
   });
 
   it('is 1 when owned but there are no terms', () => {
@@ -149,7 +149,7 @@ describe('globalRecordMultiplier', () => {
   });
 
   it('sums 1 + Σ(term − 1) over the terms when owned', () => {
-    expect(globalRecordMultiplier([8], true)).toBeCloseTo(8, 5);
-    expect(globalRecordMultiplier([8, 5], true)).toBeCloseTo(12, 5); // 1 + 7 + 4
+    expect(globalRecordMultiplier([1.08], true)).toBeCloseTo(1.08, 5);
+    expect(globalRecordMultiplier([1.08, 1.05], true)).toBeCloseTo(1.13, 5); // 1 + 0.08 + 0.05
   });
 });

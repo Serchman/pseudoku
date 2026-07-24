@@ -5,6 +5,7 @@ export const BOARD_SIZE = 9
 export const EMPTY_CELLS = 3
 
 export const EXP_BASE = 1.5         // intra-bracket exponential base (tunable, shared default)
+export const RECORD_WEIGHT = 0.125  // per-board max record bonus (12.5%) at theoretical-best time
 export const GLOBAL_MULTIPLIER = 1  // reserved for future unlocks; not upgradeable in this scope
 
 export interface Bracket {

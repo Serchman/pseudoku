@@ -1,6 +1,6 @@
 import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
-import { computeScore, boardWorth, difficultyFactor } from './scoring';
+import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
 import { getTierById, canBuyTier } from './tiers';
 import {
@@ -16,10 +16,12 @@ import {
   saveActiveBoard,
   loadOwnedBoards,
   saveOwnedBoards,
+  loadRecord,
+  saveRecord,
 } from './storage';
 
 type Status = 'idle' | 'playing' | 'complete';
-type ViewId = 'board' | 'unlocks' | 'settings';
+type ViewId = 'board' | 'unlocks' | 'settings' | 'statistics';
 type LastResult = { points: number; timeMs: number; bracketMult: number; speedApplied: boolean };
 // Per-board play state, preserved across board switches (in-memory, cleared on resetAll).
 type PlayState = {
@@ -51,6 +53,13 @@ export function createGame() {
     .filter((b) => b.cost === 0)
     .map((b) => b.id);
   let ownedBoards = $state<Set<string>>(new Set([...freeBoards, ...loadOwnedBoards()]));
+
+  const initialRecords: Record<string, number> = {};
+  for (const id of BOARD_ORDER) {
+    const r = loadRecord(id);
+    if (r !== null) initialRecords[id] = r;
+  }
+  let records = $state<Record<string, number>>(initialRecords);
 
   let ownedTiers = $state<Set<string>>(new Set(loadOwnedTiers(initialActiveBoardId)));
   let selectedTierId = $state<string>(loadSelectedTier(initialActiveBoardId));
@@ -86,6 +95,15 @@ export function createGame() {
   const conflicts = $derived(
     board && status === 'playing' ? findConflicts(board, activeBoard()) : new Set<number>(),
   );
+
+  // Global record multiplier: aggregate of each owned board's record term. Depends on records,
+  // owned boards, and the records unlock — NOT on `elapsed`, so it never recomputes on the tick.
+  const recordMultiplier = $derived.by(() => {
+    const terms = BOARD_ORDER
+      .filter((id) => ownedBoards.has(id))
+      .map((id) => recordTerm(records[id] ?? null, BOARDS[id]));
+    return globalRecordMultiplier(terms, owned.has('records'));
+  });
 
   function stopTimer() {
     if (timer !== null) {
@@ -141,6 +159,13 @@ export function createGame() {
     elapsed = timeMs;
     const result = computeScore(timeMs, activeBoard().brackets, scoreOpts());
     pendingPoints += result.points;
+
+    const prevBest = records[activeBoardId];
+    if (prevBest === undefined || timeMs < prevBest) {
+      records = { ...records, [activeBoardId]: timeMs }; // reassign so $derived recomputes
+      saveRecord(activeBoardId, timeMs);
+    }
+
     lastResult = {
       points: result.points,
       timeMs,
@@ -217,7 +242,7 @@ export function createGame() {
 
   function resetAll() {
     stopTimer();
-    pointokus += pendingPoints;
+    pointokus += Math.round(pendingPoints * recordMultiplier);
     savePointokus(pointokus);
     pendingPoints = 0;
     boardStates = {}; // wipe every board's preserved state
@@ -235,6 +260,31 @@ export function createGame() {
     },
     get pendingPoints() {
       return pendingPoints;
+    },
+    bestTime(boardId: string): number | null {
+      return records[boardId] ?? null;
+    },
+    get recordMultiplier() {
+      return recordMultiplier;
+    },
+    get bankPreview() {
+      return Math.round(pendingPoints * recordMultiplier);
+    },
+    get recordStats(): { id: string; name: string; bestMs: number | null; term: number }[] {
+      return BOARD_ORDER.filter((id) => ownedBoards.has(id)).map((id) => ({
+        id,
+        name: BOARDS[id].name,
+        bestMs: records[id] ?? null,
+        term: recordTerm(records[id] ?? null, BOARDS[id]),
+      }));
+    },
+    get lastWasRecord(): boolean {
+      return (
+        status === 'complete' &&
+        lastResult !== null &&
+        records[activeBoardId] !== undefined &&
+        lastResult.timeMs === records[activeBoardId]
+      );
     },
     get prestigeBreakdown(): { id: string; name: string; points: number }[] {
       return BOARD_ORDER.flatMap((id) => {

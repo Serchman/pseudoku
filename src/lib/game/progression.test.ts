@@ -11,6 +11,7 @@ const EXPECTED: Record<string, number> = {
   'default:hard': 800,
   'board6x3:medium': 1605,
   'board6x3:hard': 2650,
+  'records': 2850,
 };
 
 describe('derived unlock ladder', () => {

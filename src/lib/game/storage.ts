@@ -91,3 +91,19 @@ export function loadOwnedBoards(): string[] {
 export function saveOwnedBoards(ids: string[]): void {
   localStorage.setItem(OWNED_BOARDS_KEY, JSON.stringify(ids));
 }
+
+// Per-board best solve time in ms. null = no record yet (distinct from any real time).
+function recordKey(boardId: string): string {
+  return `sudoku-incremental:record:${boardId}`;
+}
+
+export function loadRecord(boardId: string): number | null {
+  const raw = localStorage.getItem(recordKey(boardId));
+  if (raw === null) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function saveRecord(boardId: string, ms: number): void {
+  localStorage.setItem(recordKey(boardId), String(ms));
+}

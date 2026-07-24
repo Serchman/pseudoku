@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGame } from './state.svelte';
 import { firstEmptyIndex, nextEmptyIndex } from './board';
 
@@ -339,6 +339,90 @@ describe('prestige breakdown', () => {
 
     expect(game.prestigeBreakdown).toEqual([]);
     expect(game.pendingPoints).toBe(0);
+  });
+});
+
+describe('best-time tracking', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('records the best time, only improves on a faster solve, and survives resetAll', () => {
+    // performance.now() is called once in start() and once in the completing checkWin().
+    // Script pairs so each solve has a known duration: 2000ms, 5000ms (slower), 1500ms (faster).
+    const times = [1000, 3000, 1000, 6000, 1000, 2500];
+    let i = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
+
+    const game = createGame();
+
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(2000);
+
+    game.resetAll(); // record must persist across this
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(2000); // 5000ms is slower → unchanged
+
+    game.resetAll();
+    game.start();
+    solveDefault(game);
+    expect(game.bestTime('default')).toBe(1500); // 1500ms is faster → improved
+
+    expect(Number(localStorage.getItem('sudoku-incremental:record:default'))).toBe(1500);
+
+    game.resetAll();
+    vi.restoreAllMocks();
+  });
+
+  it('returns null for a board with no record', () => {
+    const game = createGame();
+    expect(game.bestTime('board6x3')).toBe(null);
+  });
+});
+
+describe('record multiplier and banking', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('defaults to 1 with no records and no unlock', () => {
+    const game = createGame();
+    expect(game.recordMultiplier).toBe(1);
+  });
+
+  it('stays 1 until the records unlock is owned, then reflects best times retroactively; resetAll banks pending × multiplier', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '2850');
+    const times = [1000, 3000]; // one 2000ms solve
+    let i = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
+
+    const game = createGame();
+
+    game.start();
+    solveDefault(game); // sets record 2000ms unconditionally; pending = 10 (speed bonus not owned → base)
+    expect(game.bestTime('default')).toBe(2000);
+    expect(game.pendingPoints).toBe(10);
+    expect(game.recordMultiplier).toBe(1); // unlock not owned yet
+    expect(game.lastWasRecord).toBe(true);
+
+    game.buyUnlock('records'); // 2850 → 0
+    expect(game.recordMultiplier).toBeCloseTo(8, 5); // retroactive: term at 2000ms = 8
+
+    game.resetAll(); // banks round(10 × 8) = 80
+    expect(game.pointokus).toBe(80);
+    expect(game.pendingPoints).toBe(0);
+    expect(game.bestTime('default')).toBe(2000); // records survive resetAll
+
+    vi.restoreAllMocks();
+  });
+
+  it('recordStats lists owned boards with their best time and term', () => {
+    const game = createGame();
+    const stats = game.recordStats;
+    expect(stats).toHaveLength(1); // only the free default board is owned
+    expect(stats[0]).toMatchObject({ id: 'default', bestMs: null, term: 1 });
   });
 });
 

@@ -1,11 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { computeScore, boardWorth, difficultyFactor } from './scoring';
+import { computeScore, speedFactor, speedComponents, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
 import { BOARDS, POINT_SCALE } from './config';
 
 const brackets = BOARDS.default.brackets;
 
 // Reference board+tier factors (3×3 Easy) = 1.0 each, so the baseline payout is POINT_SCALE.
 const ref = { boardWorth: 1, difficultyFactor: 1 };
+
+describe('speedFactor', () => {
+  it('equals the bracket mult exactly at a bracket boundary (expFactor = 1)', () => {
+    // 2.0s is the 3×3 fastest-bracket boundary → mult 8, expFactor 1
+    expect(speedFactor(2000, brackets)).toBeCloseTo(8, 5);
+    // 3.0s boundary → mult 5, expFactor 1
+    expect(speedFactor(3000, brackets)).toBeCloseTo(5, 5);
+  });
+
+  it('exceeds the bracket mult inside a bracket (expFactor > 1)', () => {
+    // 2.5s: mult 5, f = (3-2.5)/(3-2) = 0.5 → 5 × 1.5^0.5 ≈ 6.12
+    expect(speedFactor(2500, brackets)).toBeCloseTo(6.1237, 3);
+  });
+
+  it('is the plain mult in the open catch-all bracket', () => {
+    expect(speedFactor(50000, brackets)).toBeCloseTo(1, 5);
+  });
+
+  it('speedComponents returns the same product computeScore applies', () => {
+    const { bracketMult, expFactor } = speedComponents(2500, brackets);
+    expect(bracketMult * expFactor).toBeCloseTo(speedFactor(2500, brackets), 10);
+  });
+});
 
 describe('computeScore', () => {
   it('returns the base payout when speed bonus is not owned, regardless of time', () => {
@@ -101,5 +124,32 @@ describe('difficultyFactor', () => {
   it('is identical for equal densities across board sizes', () => {
     // 3/9 and 6/18 are both 1/3
     expect(difficultyFactor(3, 9)).toBeCloseTo(difficultyFactor(6, 18), 5);
+  });
+});
+
+describe('recordTerm', () => {
+  it('is 1 (neutral) when there is no record', () => {
+    expect(recordTerm(null, BOARDS.default)).toBe(1);
+  });
+
+  it('equals the speed factor at the best time', () => {
+    expect(recordTerm(2000, BOARDS.default)).toBeCloseTo(8, 5);
+    expect(recordTerm(3000, BOARDS.default)).toBeCloseTo(5, 5);
+    expect(recordTerm(2500, BOARDS.default)).toBeCloseTo(6.1237, 3);
+  });
+});
+
+describe('globalRecordMultiplier', () => {
+  it('is 1 when the records unlock is not owned, regardless of terms', () => {
+    expect(globalRecordMultiplier([8, 5], false)).toBe(1);
+  });
+
+  it('is 1 when owned but there are no terms', () => {
+    expect(globalRecordMultiplier([], true)).toBe(1);
+  });
+
+  it('sums 1 + Σ(term − 1) over the terms when owned', () => {
+    expect(globalRecordMultiplier([8], true)).toBeCloseTo(8, 5);
+    expect(globalRecordMultiplier([8, 5], true)).toBeCloseTo(12, 5); // 1 + 7 + 4
   });
 });

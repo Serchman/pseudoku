@@ -6,8 +6,12 @@ describe('getNextUnlock', () => {
     expect(getNextUnlock(new Set())).toBe(UNLOCKS[0]);
   });
 
+  it('returns the records unlock when only speed-bonus is owned', () => {
+    expect(getNextUnlock(new Set(['speed-bonus']))).toBe(UNLOCKS[1]);
+  });
+
   it('returns undefined when all unlocks are owned', () => {
-    expect(getNextUnlock(new Set(['speed-bonus']))).toBeUndefined();
+    expect(getNextUnlock(new Set(['speed-bonus', 'records']))).toBeUndefined();
   });
 });
 

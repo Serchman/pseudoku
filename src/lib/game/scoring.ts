@@ -1,4 +1,4 @@
-import type { Bracket } from './config';
+import type { Bracket, BoardConfig } from './config';
 import { EXP_BASE, POINT_SCALE } from './config';
 
 // boardWorth / difficultyFactor now live in formula.ts; re-export so existing
@@ -12,22 +12,12 @@ export interface ScoreResult {
   speedApplied: boolean;
 }
 
-export function computeScore(
+// Bracket mult and intra-bracket exponential factor for a solve time. Extracted from
+// computeScore so the record term reuses the exact same speed curve (single source of truth).
+export function speedComponents(
   timeMs: number,
   brackets: Bracket[],
-  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number },
-): ScoreResult {
-  const base = POINT_SCALE * opts.boardWorth * opts.difficultyFactor;
-
-  if (!opts.speedBonusOwned) {
-    return {
-      points: Math.round(base),
-      bracketMult: 1,
-      expFactor: 1,
-      speedApplied: false,
-    };
-  }
-
+): { bracketMult: number; expFactor: number } {
   const t = timeMs / 1000;
 
   let lo = 0;
@@ -41,16 +31,44 @@ export function computeScore(
   }
 
   const hi = selected.maxSec;
-  let expFactor: number;
-  if (!Number.isFinite(hi)) {
-    expFactor = 1;
-  } else {
-    const f = Math.min(1, Math.max(0, (hi - t) / (hi - lo)));
-    expFactor = EXP_BASE ** f;
+  const expFactor = !Number.isFinite(hi)
+    ? 1
+    : EXP_BASE ** Math.min(1, Math.max(0, (hi - t) / (hi - lo)));
+
+  return { bracketMult: selected.mult, expFactor };
+}
+
+// The combined speed multiple (bracketMult × expFactor) for a solve time.
+export function speedFactor(timeMs: number, brackets: Bracket[]): number {
+  const { bracketMult, expFactor } = speedComponents(timeMs, brackets);
+  return bracketMult * expFactor;
+}
+
+export function computeScore(
+  timeMs: number,
+  brackets: Bracket[],
+  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number },
+): ScoreResult {
+  const base = POINT_SCALE * opts.boardWorth * opts.difficultyFactor;
+
+  if (!opts.speedBonusOwned) {
+    return { points: Math.round(base), bracketMult: 1, expFactor: 1, speedApplied: false };
   }
 
-  const bracketMult = selected.mult;
+  const { bracketMult, expFactor } = speedComponents(timeMs, brackets);
   const points = Math.round(base * bracketMult * expFactor * opts.globalMultiplier);
 
   return { points, bracketMult, expFactor, speedApplied: true };
+}
+
+// A board's record term: the speed multiple at its best-ever solve time. No record → 1.
+export function recordTerm(bestMs: number | null, board: BoardConfig): number {
+  return bestMs === null ? 1 : speedFactor(bestMs, board.brackets);
+}
+
+// Aggregate per-board record terms into one multiplier. Sum form: 1 + Σ(term − 1).
+// Not owned → 1 (the feature is inert until the unlock is bought).
+export function globalRecordMultiplier(terms: number[], recordsOwned: boolean): number {
+  if (!recordsOwned) return 1;
+  return 1 + terms.reduce((sum, t) => sum + (t - 1), 0);
 }

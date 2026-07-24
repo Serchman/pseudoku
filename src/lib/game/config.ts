@@ -52,6 +52,7 @@ export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'default:hard', n: 13, anchor: 'board6x3:easy', withSpeed: true, requires: ['default:medium'] },
   { gate: 'board6x3:medium', n: 18, anchor: 'default:hard', withSpeed: true, requires: ['board6x3:easy'] },
   { gate: 'board6x3:hard', n: 20, anchor: 'board6x3:medium', withSpeed: true, requires: ['board6x3:medium'] },
+  { gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] },
 ]
 
 // Board dimensions and per-tier blank-cell counts — the geometry the cost derivation

@@ -13,6 +13,8 @@ import {
   saveActiveBoard,
   loadOwnedBoards,
   saveOwnedBoards,
+  loadRecord,
+  saveRecord,
 } from './storage';
 
 describe('pointokus persistence', () => {
@@ -133,5 +135,26 @@ describe('owned boards persistence', () => {
   it('returns [] when the stored value is valid JSON but not an array', () => {
     localStorage.setItem('sudoku-incremental:owned-boards', '{"a":1}');
     expect(loadOwnedBoards()).toEqual([]);
+  });
+});
+
+describe('record (best time) persistence', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('returns null when nothing is saved', () => {
+    expect(loadRecord('default')).toBe(null);
+  });
+
+  it('round-trips a saved value, keyed per board', () => {
+    saveRecord('default', 2500);
+    expect(loadRecord('default')).toBe(2500);
+    expect(loadRecord('board6x3')).toBe(null); // isolated per board
+  });
+
+  it('returns null when the stored value is not a number', () => {
+    localStorage.setItem('sudoku-incremental:record:default', 'not-a-number');
+    expect(loadRecord('default')).toBe(null);
   });
 });

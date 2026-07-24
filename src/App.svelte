@@ -6,6 +6,7 @@
   import BoardsSheet from './lib/components/BoardsSheet.svelte';
   import UnlocksView from './lib/components/UnlocksView.svelte';
   import SettingsView from './lib/components/SettingsView.svelte';
+  import StatisticsView from './lib/components/StatisticsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
   import PrestigeModal from './lib/components/PrestigeModal.svelte';
   import KeypadPicker from './lib/components/KeypadPicker.svelte';
@@ -62,6 +63,7 @@
       Unlocks
       {#if game.nextUnlock && game.pointokus >= game.nextUnlock.cost}<span class="afford-dot"></span>{/if}
     </button>
+    <button class="tab" class:active={game.activeView === 'statistics'} onclick={() => game.setView('statistics')}>Statistics</button>
     <button class="tab" class:active={game.activeView === 'settings'} onclick={() => game.setView('settings')}>Settings</button>
   </nav>
 
@@ -98,6 +100,7 @@
               <span class="completion-points">+{game.lastResult.points} P</span>
               <span class="completion-time">{(game.lastResult.timeMs / 1000).toFixed(1)}s</span>
               {#if game.lastResult.speedApplied}<span class="completion-speed">SPEED ×{game.lastResult.bracketMult}</span>{/if}
+              {#if game.lastWasRecord}<span class="completion-record">★ NEW RECORD!</span>{/if}
             </div>
           {/if}
 
@@ -116,6 +119,8 @@
       <BoardsSheet />
     {:else if game.activeView === 'unlocks'}
       <UnlocksView />
+    {:else if game.activeView === 'statistics'}
+      <StatisticsView />
     {:else}
       <SettingsView />
     {/if}
@@ -125,6 +130,8 @@
     <PrestigeModal
       pending={game.pendingPoints}
       breakdown={game.prestigeBreakdown}
+      multiplier={game.recordMultiplier}
+      total={game.bankPreview}
       onconfirm={() => { game.resetAll(); showPrestige = false; }}
       oncancel={() => (showPrestige = false)}
     />
@@ -385,6 +392,26 @@
     padding: 2px 8px;
     font-size: 11px;
     letter-spacing: 0.5px;
+  }
+
+  .completion-record {
+    color: var(--points);
+    background: rgba(240, 200, 100, 0.1);
+    border: 1px solid var(--points);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    animation: recordpop 0.4s ease-out;
+  }
+
+  @keyframes recordpop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .completion-record { animation: none; }
   }
 
   .board-footer {

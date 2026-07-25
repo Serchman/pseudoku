@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { BOARDS } from './config';
 import { PROFILES, solveTimeMs, solvePoints, pointsPerSec } from './simulate';
 import { ownedBoards, ownedTiers, bestTier, strategyPicks } from './simulate';
+import { initialState, simulateSection } from './simulate';
 
 const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
 const easy3x3 = BOARDS.default.tiers[0];
@@ -55,5 +56,36 @@ describe('ownership and strategy picks', () => {
     expect(naive[0].boardId).toBe('board6x3'); // highest board...
     expect(naive[0].tier.id).toBe('easy');     // ...at its highest OWNED tier
     expect(strategyPicks('optimalRate', ENGAGED, MID)).toHaveLength(1);
+  });
+});
+
+describe('simulateSection', () => {
+  const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
+
+  it('section 1: 3 easy solves at 10 pts buy Speed Bonus (cost 30)', () => {
+    const r = simulateSection(initialState(), 'speed-bonus', 'optimalRate', ENGAGED);
+    expect(r.solves).toBe(3);
+    expect(r.wallClockSec).toBe(27); // 3 × (6 s solve + 3 s overhead)
+    expect(r.endState.owned.has('speed-bonus')).toBe(true);
+    expect(r.endState.pointokus).toBe(0); // banked 30, spent 30
+    expect(r.endState.pending).toBe(0);
+    expect(r.endState.records.default).toBe(6000); // record set by play
+  });
+
+  it('section 2: speed-boosted easy solves buy default:medium (cost 125)', () => {
+    const afterOne = simulateSection(initialState(), 'speed-bonus', 'optimalRate', ENGAGED);
+    const r = simulateSection(afterOne.endState, 'default:medium', 'optimalRate', ENGAGED);
+    expect(r.solves).toBe(7); // ceil(125 / 20)
+    expect(r.wallClockSec).toBe(63);
+    expect(r.endState.pointokus).toBe(15); // banked 140, spent 125
+  });
+
+  it('a section can be bought instantly from leftovers (0 solves)', () => {
+    const rich = initialState();
+    rich.pointokus = 1000;
+    const r = simulateSection(rich, 'speed-bonus', 'singleBoard', ENGAGED);
+    expect(r.solves).toBe(0);
+    expect(r.wallClockSec).toBe(0);
+    expect(r.endState.pointokus).toBe(970);
   });
 });

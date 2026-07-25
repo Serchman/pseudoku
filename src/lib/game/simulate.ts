@@ -1,6 +1,6 @@
 import type { DifficultyTier } from './config';
-import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
-import { computeScore, boardWorth, difficultyFactor } from './scoring';
+import { BOARDS, BOARD_ORDER, GATE_COSTS, GLOBAL_MULTIPLIER } from './config';
+import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
 
 export interface SkillProfile {
   id: string;
@@ -108,4 +108,68 @@ export function strategyPicks(
       ];
     }
   }
+}
+
+export interface SimState {
+  pointokus: number;               // banked, spendable
+  pending: number;                 // earned since last bank (resetAll)
+  owned: Set<string>;              // bought gate ids (PROGRESSION granularity)
+  records: Record<string, number>; // boardId -> best solve ms
+}
+
+export function initialState(): SimState {
+  return { pointokus: 0, pending: 0, owned: new Set(), records: {} };
+}
+
+function cloneState(s: SimState): SimState {
+  return { pointokus: s.pointokus, pending: s.pending, owned: new Set(s.owned), records: { ...s.records } };
+}
+
+// Mirrors state.svelte.ts's recordMultiplier $derived.
+function currentRecordMultiplier(state: SimState): number {
+  const terms = ownedBoards(state.owned).map((id) => recordTerm(state.records[id] ?? null, BOARDS[id]));
+  return globalRecordMultiplier(terms, state.owned.has('records'));
+}
+
+export interface SectionResult {
+  wallClockSec: number;
+  solves: number;
+  endState: SimState;
+}
+
+// Grind with `strategy` from `start` until `gate` is bought. Mirrors the real game:
+// solves accrue pending; banking (the resetAll prestige) converts pending × record
+// multiplier into pointokus; bank-and-buy happens the moment the gate is affordable.
+export function simulateSection(
+  start: SimState,
+  gate: string,
+  strategy: StrategyId,
+  profile: SkillProfile,
+): SectionResult {
+  const state = cloneState(start);
+  const cost = GATE_COSTS[gate];
+  let wallClockSec = 0;
+  let solves = 0;
+
+  const banked = () => state.pointokus + Math.round(state.pending * currentRecordMultiplier(state));
+
+  grind: while (banked() < cost) {
+    for (const { boardId, tier } of strategyPicks(strategy, profile, state.owned)) {
+      const timeMs = solveTimeMs(profile, tier);
+      state.pending += solvePoints(profile, boardId, tier, state.owned.has('speed-bonus'));
+      const prev = state.records[boardId];
+      if (prev === undefined || timeMs < prev) state.records[boardId] = timeMs;
+      wallClockSec += timeMs / 1000 + profile.overheadSec;
+      solves++;
+      // Guard: a balance bug that zeroes income must fail tests, not hang them.
+      if (solves > 100_000) throw new Error(`section '${gate}' (${strategy}) did not converge`);
+      if (banked() >= cost) break grind;
+    }
+  }
+
+  state.pointokus = banked() - cost;
+  state.pending = 0;
+  state.owned.add(gate);
+
+  return { wallClockSec, solves, endState: state };
 }

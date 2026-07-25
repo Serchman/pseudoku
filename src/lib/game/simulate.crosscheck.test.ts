@@ -37,7 +37,7 @@ describe('simulator agrees with the real game', () => {
 
   // Drive the real game at exactly the solve time the sim models for this profile,
   // so any divergence is a payout/banking disagreement, not a solve-time mismatch.
-  const ENGAGED_EASY_MS = solveTimeMs(ENGAGED, 'default', easy3x3); // 3000 ms
+  const ENGAGED_EASY_MS = solveTimeMs(ENGAGED, easy3x3); // 3000 ms
 
   it('per-solve payout and banking match, without speed bonus', () => {
     const game = createGame();

@@ -13,7 +13,12 @@ const easy3x3 = BOARDS.default.tiers[0];
 describe('solve model', () => {
   it('solve time is the board/tier reference time × skill multiplier', () => {
     // engaged skillMult 2; 3×3 Easy reference is 1.5 s → 3.0 s
-    expect(solveTimeMs(ENGAGED, 'default', easy3x3)).toBe(3000);
+    expect(solveTimeMs(ENGAGED, easy3x3)).toBe(3000);
+  });
+
+  it('every tier carries its reference solve time (config is the single source)', () => {
+    expect(BOARDS.default.tiers.map((t) => t.refSolveSec)).toEqual([1.5, 2, 2]);
+    expect(BOARDS.board6x3.tiers.map((t) => t.refSolveSec)).toEqual([7, 10, 12]);
   });
 
   it('payout matches the real scoring formula', () => {

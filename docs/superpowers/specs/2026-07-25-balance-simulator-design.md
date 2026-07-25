@@ -143,3 +143,25 @@ Three tables, all profiles:
 
 `npm run check`, `npm test`, `npm run build` all pass (per CLAUDE.md), plus a manual
 `npm run balance` run whose output is sanity-checked before the bands are pinned.
+
+## Findings from the first approval run (2026-07-25)
+
+The initial flat `secPerBlank` solve model produced an unnatural engaged-profile
+pacing jump (7 → 21 solves at the `board6x3` gate) because 3×3 Medium was a *rate
+trap*: an engaged player's 10 s Medium solve fell outside the 3×3 speed brackets
+(all ≤6 s), losing the speed multiplier, so unlocking Medium never accelerated the
+grind. Root cause was the model, not the economy — a flat per-blank time misrepresents
+play. The 3×3 is a no-constraint permutation (pure piano/keystroke speed, flat across
+tiers); the 6×3 needs deduction and is actually *faster per blank* on harder tiers
+(more constraints locked in). Replaced `secPerBlank` with a per-(board, tier)
+`BASE_SOLVE_SEC` reference table scaled by a profile `skillMult`, calibrated to
+observed play. Engaged pacing became a smooth 3, 3, 7, 12, 15, 25, 27 and the Medium
+trap disappeared.
+
+**Open economy finding (logged, not fixed):** with realistic flat piano times, **3×3
+Hard becomes the single best grind** — engaged ~917 pts/min, and speedy pianos it in
+~2 s into the ×8 bracket for ~4275 pts/min, beating every 6×3 tier. Once `default:hard`
+unlocks, the optimal play is to keep grinding 3×3 Hard and the 6×3 board is bypassed as
+an earner. This is a real economy imbalance (candidate fixes: tighten the 3×3 speed
+brackets so a ~2 s solve doesn't hit ×8, or rebalance tier payouts). Deferred as a
+separate economy rebalance — the pacing baseline was pinned as-is.

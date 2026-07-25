@@ -3,7 +3,7 @@ import { EXP_BASE, POINT_SCALE } from './config';
 
 // boardWorth / difficultyFactor now live in formula.ts; re-export so existing
 // importers (state.svelte.ts, scoring.test.ts) keep importing them from here.
-export { boardWorth, difficultyFactor } from './formula';
+export { boardWorth, difficultyFactor, timeFactor } from './formula';
 
 export interface ScoreResult {
   points: number;

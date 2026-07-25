@@ -1,5 +1,5 @@
 import { gateCost } from './formula'
-export { POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY, REF_SPEED_MULT } from './formula'
+export { POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY, REF_SOLVE_SEC, REF_SPEED_MULT } from './formula'
 
 export const BOARD_SIZE = 9
 export const EMPTY_CELLS = 3

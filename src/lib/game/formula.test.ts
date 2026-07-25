@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { gateCost } from './formula';
+import { gateCost, timeFactor } from './formula';
+
+describe('timeFactor', () => {
+  it('is 1 at the 3×3 Easy reference solve time', () => {
+    expect(timeFactor(1.5)).toBe(1);
+  });
+
+  it('scales linearly with the reference solve time', () => {
+    expect(timeFactor(12)).toBe(8); // 6×3 Hard
+  });
+});
 
 describe('gateCost', () => {
   it('is N × POINT_SCALE at the reference tier with no speed', () => {

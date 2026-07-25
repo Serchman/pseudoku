@@ -3,6 +3,8 @@ import { BOARDS } from './config';
 import { PROFILES, solveTimeMs, solvePoints, pointsPerSec } from './simulate';
 import { ownedBoards, ownedTiers, bestTier, strategyPicks } from './simulate';
 import { initialState, simulateSection } from './simulate';
+import { runLadder, STRATEGIES } from './simulate';
+import { PROGRESSION } from './config';
 
 const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
 const easy3x3 = BOARDS.default.tiers[0];
@@ -87,5 +89,34 @@ describe('simulateSection', () => {
     expect(r.solves).toBe(0);
     expect(r.wallClockSec).toBe(0);
     expect(r.endState.pointokus).toBe(970);
+  });
+});
+
+describe('runLadder', () => {
+  const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
+
+  it('reaches every gate in PROGRESSION order with strictly increasing wall-clock', () => {
+    const ladder = runLadder(ENGAGED);
+    expect(ladder.map((s) => s.gate)).toEqual(PROGRESSION.map((p) => p.gate));
+    for (let i = 1; i < ladder.length; i++) {
+      expect(ladder[i].cumulativeSec).toBeGreaterThan(ladder[i - 1].cumulativeSec);
+    }
+  });
+
+  it('every section has a result for every strategy and a listed winner', () => {
+    for (const s of runLadder(ENGAGED)) {
+      expect(Object.keys(s.results).sort()).toEqual([...STRATEGIES].sort());
+      expect(STRATEGIES).toContain(s.winner);
+      const w = s.results[s.winner];
+      for (const id of STRATEGIES) {
+        expect(w.wallClockSec).toBeLessThanOrEqual(s.results[id].wallClockSec);
+      }
+    }
+  });
+
+  it('terminates for every profile', () => {
+    for (const p of PROFILES) {
+      expect(runLadder(p)).toHaveLength(PROGRESSION.length);
+    }
   });
 });

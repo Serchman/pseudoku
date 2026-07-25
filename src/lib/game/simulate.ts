@@ -1,5 +1,5 @@
 import type { DifficultyTier } from './config';
-import { BOARDS, BOARD_ORDER, GATE_COSTS, GLOBAL_MULTIPLIER } from './config';
+import { BOARDS, BOARD_ORDER, GATE_COSTS, GLOBAL_MULTIPLIER, PROGRESSION } from './config';
 import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
 
 export interface SkillProfile {
@@ -172,4 +172,36 @@ export function simulateSection(
   state.owned.add(gate);
 
   return { wallClockSec, solves, endState: state };
+}
+
+export interface LadderSection {
+  gate: string;
+  cost: number;
+  results: Record<StrategyId, { wallClockSec: number; solves: number }>;
+  winner: StrategyId;
+  cumulativeSec: number;
+}
+
+// Per-section tournament: every strategy runs each section from the same start
+// state; the fastest wins (ties: STRATEGIES order) and its end state seeds the
+// next section. The chained winners are the pacing curve the tests pin.
+export function runLadder(profile: SkillProfile): LadderSection[] {
+  let state = initialState();
+  let cumulativeSec = 0;
+  return PROGRESSION.map((p) => {
+    const results = {} as LadderSection['results'];
+    let winner = STRATEGIES[0];
+    let winnerResult: SectionResult | undefined;
+    for (const strategy of STRATEGIES) {
+      const r = simulateSection(state, p.gate, strategy, profile);
+      results[strategy] = { wallClockSec: r.wallClockSec, solves: r.solves };
+      if (winnerResult === undefined || r.wallClockSec < winnerResult.wallClockSec) {
+        winner = strategy;
+        winnerResult = r;
+      }
+    }
+    state = winnerResult!.endState;
+    cumulativeSec += winnerResult!.wallClockSec;
+    return { gate: p.gate, cost: GATE_COSTS[p.gate], results, winner, cumulativeSec };
+  });
 }

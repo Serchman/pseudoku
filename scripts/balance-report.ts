@@ -5,7 +5,7 @@ import { formatClock } from '../src/lib/game/meter';
 const fmt = (sec: number) => formatClock(sec * 1000);
 
 for (const profile of PROFILES) {
-  console.log(`\n=== ${profile.id} (${profile.secPerBlank} s/blank, +${profile.overheadSec} s overhead) ===`);
+  console.log(`\n=== ${profile.id} (${profile.skillMult}× skill, +${profile.overheadSec} s overhead) ===`);
   const ladder = runLadder(profile);
 
   console.log('\nPacing (chained winners):');

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createGame } from './state.svelte';
 import { BOARDS } from './config';
-import { PROFILES, solvePoints } from './simulate';
+import { PROFILES, solvePoints, solveTimeMs } from './simulate';
 
 const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
 const easy3x3 = BOARDS.default.tiers[0];
@@ -35,10 +35,14 @@ describe('simulator agrees with the real game', () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.restoreAllMocks());
 
+  // Drive the real game at exactly the solve time the sim models for this profile,
+  // so any divergence is a payout/banking disagreement, not a solve-time mismatch.
+  const ENGAGED_EASY_MS = solveTimeMs(ENGAGED, 'default', easy3x3); // 3000 ms
+
   it('per-solve payout and banking match, without speed bonus', () => {
     const game = createGame();
-    solveAt(game, 6000); // engaged-profile easy solve: 2 s/blank × 3 blanks
-    solveAt(game, 6000);
+    solveAt(game, ENGAGED_EASY_MS); // engaged-profile 3×3 easy solve
+    solveAt(game, ENGAGED_EASY_MS);
     game.resetAll(); // bank
 
     const simPoints = 2 * solvePoints(ENGAGED, 'default', easy3x3, false);
@@ -51,10 +55,10 @@ describe('simulator agrees with the real game', () => {
     game.buyUnlock('speed-bonus');
     expect(game.speedBonusOwned).toBe(true);
 
-    solveAt(game, 6000);
+    solveAt(game, ENGAGED_EASY_MS);
     game.resetAll();
 
     const simPoints = solvePoints(ENGAGED, 'default', easy3x3, true);
-    expect(game.pointokus).toBe(simPoints); // 20: banked pending, 0 left from the buy
+    expect(game.pointokus).toBe(simPoints); // 50: banked pending, 0 left from the buy
   });
 });

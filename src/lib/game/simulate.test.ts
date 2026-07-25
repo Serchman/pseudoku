@@ -11,21 +11,22 @@ const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
 const easy3x3 = BOARDS.default.tiers[0];
 
 describe('solve model', () => {
-  it('solve time is secPerBlank × emptyCells', () => {
-    // engaged = 2 s/blank; 3×3 Easy has 3 blanks
-    expect(solveTimeMs(ENGAGED, easy3x3)).toBe(6000);
+  it('solve time is the board/tier reference time × skill multiplier', () => {
+    // engaged skillMult 2; 3×3 Easy reference is 1.5 s → 3.0 s
+    expect(solveTimeMs(ENGAGED, 'default', easy3x3)).toBe(3000);
   });
 
   it('payout matches the real scoring formula', () => {
-    // 6 s lands the ≤6 s bracket (mult 2) exactly at its edge (expFactor 1):
-    // base 10 × 2 = 20 with Speed Bonus, flat 10 without.
+    // no Speed Bonus → flat base 10 (time-independent).
+    // with Speed Bonus: engaged pianos 3×3 Easy in 3 s → ≤3 s bracket (mult 5),
+    // expFactor 1 at the edge → 10 × 5 = 50.
     expect(solvePoints(ENGAGED, 'default', easy3x3, false)).toBe(10);
-    expect(solvePoints(ENGAGED, 'default', easy3x3, true)).toBe(20);
+    expect(solvePoints(ENGAGED, 'default', easy3x3, true)).toBe(50);
   });
 
   it('rate divides payout by solve time plus overhead', () => {
-    // engaged overhead 3 s → 20 pts / (6 s + 3 s)
-    expect(pointsPerSec(ENGAGED, 'default', easy3x3, true)).toBeCloseTo(20 / 9);
+    // engaged overhead 3 s → 50 pts / (3 s + 3 s)
+    expect(pointsPerSec(ENGAGED, 'default', easy3x3, true)).toBeCloseTo(50 / 6);
   });
 });
 
@@ -44,10 +45,11 @@ describe('ownership and strategy picks', () => {
   });
 
   it('bestTier picks by rate, not by difficulty', () => {
-    // engaged on 3×3: Medium takes 10 s (past every bracket, ×1) → 22 pts at
-    // 22/13 ≈ 1.7/s, worse than Easy's 20/9 ≈ 2.2/s. Rate-picking keeps Easy.
+    // engaged on 3×3 with Speed Bonus: Easy solves in 3 s → 50 pts / 6 s = 8.3/s;
+    // Medium in 4 s → ≤4 s bracket (mult 3) → 65 pts / 7 s = 9.3/s. With realistic
+    // piano solve times Medium now out-rates Easy — the old rate trap is gone.
     const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
-    expect(bestTier(ENGAGED, 'default', MID).id).toBe('easy');
+    expect(bestTier(ENGAGED, 'default', MID).id).toBe('medium');
   });
 
   it('each strategy grinds the boards the spec says', () => {
@@ -68,19 +70,19 @@ describe('simulateSection', () => {
   it('section 1: 3 easy solves at 10 pts buy Speed Bonus (cost 30)', () => {
     const r = simulateSection(initialState(), 'speed-bonus', 'optimalRate', ENGAGED);
     expect(r.solves).toBe(3);
-    expect(r.wallClockSec).toBe(27); // 3 × (6 s solve + 3 s overhead)
+    expect(r.wallClockSec).toBe(18); // 3 × (3 s solve + 3 s overhead)
     expect(r.endState.owned.has('speed-bonus')).toBe(true);
     expect(r.endState.pointokus).toBe(0); // banked 30, spent 30
     expect(r.endState.pending).toBe(0);
-    expect(r.endState.records.default).toBe(6000); // record set by play
+    expect(r.endState.records.default).toBe(3000); // record set by play
   });
 
   it('section 2: speed-boosted easy solves buy default:medium (cost 125)', () => {
     const afterOne = simulateSection(initialState(), 'speed-bonus', 'optimalRate', ENGAGED);
     const r = simulateSection(afterOne.endState, 'default:medium', 'optimalRate', ENGAGED);
-    expect(r.solves).toBe(7); // ceil(125 / 20)
-    expect(r.wallClockSec).toBe(63);
-    expect(r.endState.pointokus).toBe(15); // banked 140, spent 125
+    expect(r.solves).toBe(3); // ceil(125 / 50): easy pays 50 with Speed Bonus now
+    expect(r.wallClockSec).toBe(18);
+    expect(r.endState.pointokus).toBe(25); // banked 150, spent 125
   });
 
   it('a section can be bought instantly from leftovers (0 solves)', () => {
@@ -130,7 +132,7 @@ describe('rateTable', () => {
       'default:easy', 'default:medium', 'default:hard',
       'board6x3:easy', 'board6x3:medium', 'board6x3:hard',
     ]);
-    // engaged 3×3 Easy: 20 pts / 9 s wall-clock → ×60
-    expect(rows[0].pointsPerMin).toBeCloseTo((20 / 9) * 60);
+    // engaged 3×3 Easy: 50 pts / 6 s wall-clock → ×60
+    expect(rows[0].pointsPerMin).toBeCloseTo((50 / 6) * 60);
   });
 });

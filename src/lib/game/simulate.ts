@@ -4,21 +4,33 @@ import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMul
 
 export interface SkillProfile {
   id: string;
-  secPerBlank: number; // seconds of solve time per blank cell
+  skillMult: number;   // multiplies the reference solve time (1 = skilled/fast play)
   overheadSec: number; // between-solve overhead (start click, menus, banking)
 }
 
-// Deterministic player archetypes. The engaged profile's typical speed multiple
-// should sit near REF_SPEED_MULT (2.5) — checked in simulate.test.ts.
+// Deterministic player archetypes. skillMult scales the reference solve table;
+// engaged (2×) is anchored to observed play (6×3 Easy: ~7 s skilled, ~14 s typical).
+// mobile solves at engaged speed (touch-drag input is close to keyboard) but carries
+// more per-solve overhead.
 export const PROFILES: SkillProfile[] = [
-  { id: 'speedy', secPerBlank: 1, overheadSec: 2 },
-  { id: 'engaged', secPerBlank: 2, overheadSec: 3 },
-  { id: 'casual', secPerBlank: 4, overheadSec: 5 },
-  { id: 'mobile', secPerBlank: 5, overheadSec: 8 },
+  { id: 'speedy', skillMult: 1, overheadSec: 2 },
+  { id: 'engaged', skillMult: 2, overheadSec: 3 },
+  { id: 'casual', skillMult: 3, overheadSec: 5 },
+  { id: 'mobile', skillMult: 2, overheadSec: 5 },
 ];
 
-export function solveTimeMs(profile: SkillProfile, tier: DifficultyTier): number {
-  return profile.secPerBlank * tier.emptyCells * 1000;
+// Reference solve time (seconds) for skilled/fast play, per board and tier. Real
+// solve time is a property of the board+tier, not a linear function of blank count:
+// the 3×3 is pianoable (flat, no deduction — you just type the missing digits); the
+// 6×3 needs scanning and gets *faster per blank* on harder tiers (more constraints
+// locked in). Calibrated to observed play; a profile's skillMult scales the table.
+const BASE_SOLVE_SEC: Record<string, Record<string, number>> = {
+  default: { easy: 1.5, medium: 2, hard: 2 },
+  board6x3: { easy: 7, medium: 10, hard: 12 },
+};
+
+export function solveTimeMs(profile: SkillProfile, boardId: string, tier: DifficultyTier): number {
+  return BASE_SOLVE_SEC[boardId][tier.id] * profile.skillMult * 1000;
 }
 
 // Payout of one solve, via the real scoring pipeline (no duplicated math).
@@ -29,7 +41,7 @@ export function solvePoints(
   speedBonusOwned: boolean,
 ): number {
   const b = BOARDS[boardId];
-  return computeScore(solveTimeMs(profile, tier), b.brackets, {
+  return computeScore(solveTimeMs(profile, boardId, tier), b.brackets, {
     speedBonusOwned,
     globalMultiplier: GLOBAL_MULTIPLIER,
     boardWorth: boardWorth(b),
@@ -46,7 +58,7 @@ export function pointsPerSec(
 ): number {
   return (
     solvePoints(profile, boardId, tier, speedBonusOwned) /
-    (solveTimeMs(profile, tier) / 1000 + profile.overheadSec)
+    (solveTimeMs(profile, boardId, tier) / 1000 + profile.overheadSec)
   );
 }
 
@@ -155,7 +167,7 @@ export function simulateSection(
 
   grind: while (banked() < cost) {
     for (const { boardId, tier } of strategyPicks(strategy, profile, state.owned)) {
-      const timeMs = solveTimeMs(profile, tier);
+      const timeMs = solveTimeMs(profile, boardId, tier);
       state.pending += solvePoints(profile, boardId, tier, state.owned.has('speed-bonus'));
       const prev = state.records[boardId];
       if (prev === undefined || timeMs < prev) state.records[boardId] = timeMs;

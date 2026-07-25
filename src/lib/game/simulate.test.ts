@@ -136,3 +136,30 @@ describe('rateTable', () => {
     expect(rows[0].pointsPerMin).toBeCloseTo((50 / 6) * 60);
   });
 });
+
+// Approved pacing baseline (engaged profile, chained winners), pinned per the
+// balance-simulator spec after the per-board solve-time model. If a change moves
+// pacing outside ±25%, either fix the change or consciously re-approve and update
+// this table (like progression.test.ts).
+const EXPECTED_ENGAGED_CUMULATIVE_SEC: Record<string, number> = {
+  'speed-bonus': 18,
+  'default:medium': 36,
+  'board6x3': 85,
+  'default:hard': 169,
+  'board6x3:medium': 274,
+  'board6x3:hard': 449,
+  'records': 638,
+};
+const BAND = 0.25;
+
+describe('pacing bands', () => {
+  it('engaged-profile pacing stays within the approved bands', () => {
+    const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
+    for (const s of runLadder(ENGAGED)) {
+      const expected = EXPECTED_ENGAGED_CUMULATIVE_SEC[s.gate];
+      expect(expected, `no approved baseline for gate '${s.gate}'`).toBeDefined();
+      expect(s.cumulativeSec).toBeGreaterThanOrEqual(expected * (1 - BAND));
+      expect(s.cumulativeSec).toBeLessThanOrEqual(expected * (1 + BAND));
+    }
+  });
+});

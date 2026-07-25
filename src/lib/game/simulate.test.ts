@@ -4,6 +4,7 @@ import { PROFILES, solveTimeMs, solvePoints, pointsPerSec } from './simulate';
 import { ownedBoards, ownedTiers, bestTier, strategyPicks } from './simulate';
 import { initialState, simulateSection } from './simulate';
 import { runLadder, STRATEGIES } from './simulate';
+import { rateTable } from './simulate';
 import { PROGRESSION } from './config';
 
 const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
@@ -118,5 +119,18 @@ describe('runLadder', () => {
     for (const p of PROFILES) {
       expect(runLadder(p)).toHaveLength(PROGRESSION.length);
     }
+  });
+});
+
+describe('rateTable', () => {
+  it('covers every board × tier with speed-boosted rates', () => {
+    const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
+    const rows = rateTable(ENGAGED);
+    expect(rows.map((r) => `${r.boardId}:${r.tierId}`)).toEqual([
+      'default:easy', 'default:medium', 'default:hard',
+      'board6x3:easy', 'board6x3:medium', 'board6x3:hard',
+    ]);
+    // engaged 3×3 Easy: 20 pts / 9 s wall-clock → ×60
+    expect(rows[0].pointsPerMin).toBeCloseTo((20 / 9) * 60);
   });
 });

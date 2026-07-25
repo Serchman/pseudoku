@@ -205,3 +205,21 @@ export function runLadder(profile: SkillProfile): LadderSection[] {
     return { gate: p.gate, cost: GATE_COSTS[p.gate], results, winner, cumulativeSec };
   });
 }
+
+export interface RateRow {
+  boardId: string;
+  tierId: string;
+  pointsPerMin: number;
+}
+
+// Points/min for every board × tier (speed bonus assumed owned — true for all
+// but the first gate). Surfaces rate traps regardless of ownership.
+export function rateTable(profile: SkillProfile): RateRow[] {
+  return BOARD_ORDER.flatMap((boardId) =>
+    BOARDS[boardId].tiers.map((tier) => ({
+      boardId,
+      tierId: tier.id,
+      pointsPerMin: pointsPerSec(profile, boardId, tier, true) * 60,
+    })),
+  );
+}

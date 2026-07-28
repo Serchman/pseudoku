@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { getNextTier, getTierById, canBuyTier } from './tiers';
 import { BOARDS } from './config';
 
-const tiers = BOARDS.default.tiers; // easy (0), medium (125), hard (800)
+const tiers = BOARDS.default.tiers; // easy (0), medium (125), hard (3735)
 
 describe('getNextTier', () => {
   it('returns the first tier when nothing is owned', () => {

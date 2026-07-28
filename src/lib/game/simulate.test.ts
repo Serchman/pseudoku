@@ -13,7 +13,12 @@ const easy3x3 = BOARDS.default.tiers[0];
 describe('solve model', () => {
   it('solve time is the board/tier reference time × skill multiplier', () => {
     // engaged skillMult 2; 3×3 Easy reference is 1.5 s → 3.0 s
-    expect(solveTimeMs(ENGAGED, 'default', easy3x3)).toBe(3000);
+    expect(solveTimeMs(ENGAGED, easy3x3)).toBe(3000);
+  });
+
+  it('every tier carries its reference solve time (config is the single source)', () => {
+    expect(BOARDS.default.tiers.map((t) => t.refSolveSec)).toEqual([1.5, 2, 2]);
+    expect(BOARDS.board6x3.tiers.map((t) => t.refSolveSec)).toEqual([7, 10, 12]);
   });
 
   it('payout matches the real scoring formula', () => {
@@ -46,8 +51,9 @@ describe('ownership and strategy picks', () => {
 
   it('bestTier picks by rate, not by difficulty', () => {
     // engaged on 3×3 with Speed Bonus: Easy solves in 3 s → 50 pts / 6 s = 8.3/s;
-    // Medium in 4 s → ≤4 s bracket (mult 3) → 65 pts / 7 s = 9.3/s. With realistic
-    // piano solve times Medium now out-rates Easy — the old rate trap is gone.
+    // Medium in 4 s → ≤4 s bracket (mult 3) → 86 pts / 7 s = 12.3/s (base 10 × 4/3 ×
+    // 2.1517 ≈ 28.69, ×3 bracket). With realistic piano solve times Medium now
+    // out-rates Easy — the old rate trap is gone.
     const ENGAGED = PROFILES.find((p) => p.id === 'engaged')!;
     expect(bestTier(ENGAGED, 'default', MID).id).toBe('medium');
   });
@@ -137,6 +143,23 @@ describe('rateTable', () => {
   });
 });
 
+describe('rate ladder', () => {
+  it('bigger boards and harder tiers are strictly more profitable, for every profile', () => {
+    for (const p of PROFILES) {
+      const rates = Object.fromEntries(
+        rateTable(p).map((r) => [`${r.boardId}:${r.tierId}`, r.pointsPerMin]),
+      );
+      // within-board: harder out-earns easier
+      expect(rates['default:medium'], p.id).toBeGreaterThan(rates['default:easy']);
+      expect(rates['default:hard'], p.id).toBeGreaterThan(rates['default:medium']);
+      expect(rates['board6x3:medium'], p.id).toBeGreaterThan(rates['board6x3:easy']);
+      expect(rates['board6x3:hard'], p.id).toBeGreaterThan(rates['board6x3:medium']);
+      // cross-board: the 6×3 floor clears the 3×3 ceiling
+      expect(rates['board6x3:easy'], p.id).toBeGreaterThan(rates['default:hard']);
+    }
+  });
+});
+
 // Approved pacing baseline (engaged profile, chained winners), pinned per the
 // balance-simulator spec after the per-board solve-time model. If a change moves
 // pacing outside ±25%, either fix the change or consciously re-approve and update
@@ -145,10 +168,10 @@ const EXPECTED_ENGAGED_CUMULATIVE_SEC: Record<string, number> = {
   'speed-bonus': 18,
   'default:medium': 36,
   'board6x3': 85,
-  'default:hard': 169,
-  'board6x3:medium': 274,
-  'board6x3:hard': 449,
-  'records': 638,
+  'default:hard': 170,
+  'board6x3:medium': 289,
+  'board6x3:hard': 588,
+  'records': 858,
 };
 const BAND = 0.25;
 

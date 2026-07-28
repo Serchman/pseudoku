@@ -1,5 +1,5 @@
 import { gateCost } from './formula'
-export { POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY, REF_SPEED_MULT } from './formula'
+export { POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY, REF_SOLVE_SEC, REF_SPEED_MULT } from './formula'
 
 export const BOARD_SIZE = 9
 export const EMPTY_CELLS = 3
@@ -16,6 +16,7 @@ export interface DifficultyTier {
   id: string
   label: string
   emptyCells: number // blank cells the player must fill
+  refSolveSec: number // skilled-play reference solve time (s) — scoring/sim anchor
   cost: number       // pointokus to unlock (0 = free starter tier)
 }
 
@@ -50,7 +51,7 @@ export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'default:medium', n: 5, anchor: 'default:easy', withSpeed: true, requires: ['default:easy'] },
   { gate: 'board6x3', n: 8, anchor: 'default:medium', withSpeed: true, requires: ['default:medium'] },
   { gate: 'default:hard', n: 13, anchor: 'board6x3:easy', withSpeed: true, requires: ['default:medium'] },
-  { gate: 'board6x3:medium', n: 18, anchor: 'default:hard', withSpeed: true, requires: ['board6x3:easy'] },
+  { gate: 'board6x3:medium', n: 18, anchor: 'board6x3:easy', withSpeed: true, requires: ['board6x3:easy'] },
   { gate: 'board6x3:hard', n: 20, anchor: 'board6x3:medium', withSpeed: true, requires: ['board6x3:medium'] },
   { gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] },
 ]
@@ -62,31 +63,35 @@ const BOARD_DIMS: Record<string, { cols: number; rows: number }> = {
   board6x3: { cols: 6, rows: 3 },
 }
 
+// Reference solve time is a property of the board+tier, not a linear function of
+// blank count: the 3×3 is pianoable (flat, no deduction — you just type the missing
+// digits); the 6×3 needs scanning and gets *faster per blank* on harder tiers (more
+// constraints locked in). Calibrated to observed play.
 const TIER_BLANKS: Record<string, DifficultyTier[]> = {
   default: [
-    { id: 'easy', label: 'Easy', emptyCells: 3, cost: 0 },
-    { id: 'medium', label: 'Medium', emptyCells: 5, cost: 0 },
-    { id: 'hard', label: 'Hard', emptyCells: 7, cost: 0 },
+    { id: 'easy', label: 'Easy', emptyCells: 3, refSolveSec: 1.5, cost: 0 },
+    { id: 'medium', label: 'Medium', emptyCells: 5, refSolveSec: 2, cost: 0 },
+    { id: 'hard', label: 'Hard', emptyCells: 7, refSolveSec: 2, cost: 0 },
   ],
   board6x3: [
-    { id: 'easy', label: 'Easy', emptyCells: 6, cost: 0 },
-    { id: 'medium', label: 'Medium', emptyCells: 10, cost: 0 },
-    { id: 'hard', label: 'Hard', emptyCells: 14, cost: 0 },
+    { id: 'easy', label: 'Easy', emptyCells: 6, refSolveSec: 7, cost: 0 },
+    { id: 'medium', label: 'Medium', emptyCells: 10, refSolveSec: 10, cost: 0 },
+    { id: 'hard', label: 'Hard', emptyCells: 14, refSolveSec: 12, cost: 0 },
   ],
 }
 
-function anchorDims(anchorId: string): { cols: number; rows: number; emptyCells: number } {
+function anchorDims(anchorId: string): { cols: number; rows: number; emptyCells: number; refSolveSec: number } {
   const [boardId, tierId] = anchorId.split(':')
   const { cols, rows } = BOARD_DIMS[boardId]
-  const emptyCells = TIER_BLANKS[boardId].find((t) => t.id === tierId)!.emptyCells
-  return { cols, rows, emptyCells }
+  const t = TIER_BLANKS[boardId].find((tier) => tier.id === tierId)!
+  return { cols, rows, emptyCells: t.emptyCells, refSolveSec: t.refSolveSec }
 }
 
 // gate id -> derived cost (single source of truth: PROGRESSION + the formula helpers).
 export const GATE_COSTS: Record<string, number> = Object.fromEntries(
   PROGRESSION.map((p) => {
     const a = anchorDims(p.anchor)
-    return [p.gate, gateCost(p.n, a.cols, a.rows, a.emptyCells, p.withSpeed)]
+    return [p.gate, gateCost(p.n, a.cols, a.rows, a.emptyCells, a.refSolveSec, p.withSpeed)]
   }),
 )
 
@@ -133,7 +138,7 @@ export const BOARDS: Record<string, BoardConfig> = {
       { maxSec: 12, mult: 8 },
       { maxSec: 18, mult: 5 },
       { maxSec: 25, mult: 3 },
-      { maxSec: 35, mult: 2 },
+      { maxSec: 40, mult: 2 },
       { maxSec: Infinity, mult: 1 },
     ],
     tiers: tiersFor('board6x3'),

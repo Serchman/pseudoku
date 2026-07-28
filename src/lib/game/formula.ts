@@ -7,6 +7,7 @@ export const SIZE_EXP = 1.3;         // board-worth steepness in total cells
 export const DIFF_EXP = 1.5;         // difficulty steepness in blank density
 export const REF_CELLS = 9;          // reference board size (3×3): boardWorth = 1 here
 export const REF_DENSITY = 1 / 3;    // reference blank density (Easy): difficultyFactor = 1 here
+export const REF_SOLVE_SEC = 1.5;    // reference solve time (3×3 Easy): timeFactor = 1 here
 export const REF_SPEED_MULT = 2.5;   // typical engaged-play speed multiplier folded into gate
                                      // costs bought after Speed Bonus (retune knob for automation etc.)
 
@@ -26,6 +27,13 @@ export function difficultyFactor(emptyCells: number, totalCells: number): number
   return (density / REF_DENSITY) ** DIFF_EXP;
 }
 
+// Payout time anchor: a tier pays proportionally to its reference solve time,
+// normalized so 3×3 Easy = 1.0. boardWorth × difficultyFactor then act as pure
+// profit-rate escalators, so bigger/harder boards out-earn by construction.
+export function timeFactor(refSolveSec: number): number {
+  return refSolveSec / REF_SOLVE_SEC;
+}
+
 // Round to the nearest 5 so derived costs read clean.
 function round5(x: number): number {
   return Math.round(x / 5) * 5;
@@ -38,11 +46,12 @@ export function gateCost(
   anchorCols: number,
   anchorRows: number,
   anchorEmptyCells: number,
+  anchorRefSolveSec: number,
   withSpeed: boolean,
 ): number {
   const cells = anchorCols * anchorRows;
   const worth = sizeWorth(cells);
   const diff = difficultyFactor(anchorEmptyCells, cells);
   const speed = withSpeed ? REF_SPEED_MULT : 1;
-  return round5(n * POINT_SCALE * worth * diff * speed);
+  return round5(n * POINT_SCALE * timeFactor(anchorRefSolveSec) * worth * diff * speed);
 }

@@ -46,11 +46,12 @@ export function gateCost(
   anchorCols: number,
   anchorRows: number,
   anchorEmptyCells: number,
+  anchorRefSolveSec: number,
   withSpeed: boolean,
 ): number {
   const cells = anchorCols * anchorRows;
   const worth = sizeWorth(cells);
   const diff = difficultyFactor(anchorEmptyCells, cells);
   const speed = withSpeed ? REF_SPEED_MULT : 1;
-  return round5(n * POINT_SCALE * worth * diff * speed);
+  return round5(n * POINT_SCALE * timeFactor(anchorRefSolveSec) * worth * diff * speed);
 }

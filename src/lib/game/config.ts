@@ -51,7 +51,7 @@ export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'default:medium', n: 5, anchor: 'default:easy', withSpeed: true, requires: ['default:easy'] },
   { gate: 'board6x3', n: 8, anchor: 'default:medium', withSpeed: true, requires: ['default:medium'] },
   { gate: 'default:hard', n: 13, anchor: 'board6x3:easy', withSpeed: true, requires: ['default:medium'] },
-  { gate: 'board6x3:medium', n: 18, anchor: 'default:hard', withSpeed: true, requires: ['board6x3:easy'] },
+  { gate: 'board6x3:medium', n: 18, anchor: 'board6x3:easy', withSpeed: true, requires: ['board6x3:easy'] },
   { gate: 'board6x3:hard', n: 20, anchor: 'board6x3:medium', withSpeed: true, requires: ['board6x3:medium'] },
   { gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] },
 ]
@@ -80,18 +80,18 @@ const TIER_BLANKS: Record<string, DifficultyTier[]> = {
   ],
 }
 
-function anchorDims(anchorId: string): { cols: number; rows: number; emptyCells: number } {
+function anchorDims(anchorId: string): { cols: number; rows: number; emptyCells: number; refSolveSec: number } {
   const [boardId, tierId] = anchorId.split(':')
   const { cols, rows } = BOARD_DIMS[boardId]
-  const emptyCells = TIER_BLANKS[boardId].find((t) => t.id === tierId)!.emptyCells
-  return { cols, rows, emptyCells }
+  const t = TIER_BLANKS[boardId].find((tier) => tier.id === tierId)!
+  return { cols, rows, emptyCells: t.emptyCells, refSolveSec: t.refSolveSec }
 }
 
 // gate id -> derived cost (single source of truth: PROGRESSION + the formula helpers).
 export const GATE_COSTS: Record<string, number> = Object.fromEntries(
   PROGRESSION.map((p) => {
     const a = anchorDims(p.anchor)
-    return [p.gate, gateCost(p.n, a.cols, a.rows, a.emptyCells, p.withSpeed)]
+    return [p.gate, gateCost(p.n, a.cols, a.rows, a.emptyCells, a.refSolveSec, p.withSpeed)]
   }),
 )
 
@@ -138,7 +138,7 @@ export const BOARDS: Record<string, BoardConfig> = {
       { maxSec: 12, mult: 8 },
       { maxSec: 18, mult: 5 },
       { maxSec: 25, mult: 3 },
-      { maxSec: 35, mult: 2 },
+      { maxSec: 40, mult: 2 },
       { maxSec: Infinity, mult: 1 },
     ],
     tiers: tiersFor('board6x3'),

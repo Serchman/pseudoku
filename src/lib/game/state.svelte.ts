@@ -1,6 +1,6 @@
 import { generatePuzzle, isComplete, findConflicts, firstEmptyIndex, nextEmptyIndex, type Board } from './board';
 import { BOARDS, BOARD_ORDER, GLOBAL_MULTIPLIER } from './config';
-import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
+import { computeScore, boardWorth, difficultyFactor, timeFactor, recordTerm, globalRecordMultiplier } from './scoring';
 import { UNLOCKS, getNextUnlock, canBuy } from './unlocks';
 import { getTierById, canBuyTier } from './tiers';
 import {
@@ -87,6 +87,7 @@ export function createGame() {
       globalMultiplier: GLOBAL_MULTIPLIER,
       boardWorth: boardWorth(b),
       difficultyFactor: difficultyFactor(selectedTier().emptyCells, totalCells),
+      timeFactor: timeFactor(selectedTier().refSolveSec),
     };
   }
 
@@ -349,7 +350,7 @@ export function createGame() {
       const totalCells = activeBoard().cols * activeBoard().rows;
       return activeBoard().tiers.map((t) => ({
         ...t,
-        mult: difficultyFactor(t.emptyCells, totalCells),
+        mult: timeFactor(t.refSolveSec) * difficultyFactor(t.emptyCells, totalCells),
         owned: ownedTiers.has(t.id),
         selected: t.id === selectedTierId,
         buyable: canBuyTier(t.id, pointokus, ownedTiers, activeBoard().tiers),

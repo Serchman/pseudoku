@@ -68,26 +68,26 @@ describe('board selection and purchasing', () => {
     localStorage.clear();
   });
 
-  it('buyBoard with ≥430 points: deducts 430, marks owned, persists, and auto-selects', () => {
+  it('buyBoard with ≥575 points: deducts 575, marks owned, persists, and auto-selects', () => {
     localStorage.setItem('sudoku-incremental:pointokus', '600');
     const game = createGame();
 
     game.buyBoard('board6x3');
 
-    expect(game.pointokus).toBe(170); // 600 - 430
+    expect(game.pointokus).toBe(25); // 600 - 575
     expect(game.boards.find((b) => b.id === 'board6x3')!.owned).toBe(true);
     expect(loadJson('sudoku-incremental:owned-boards')).toContain('board6x3');
-    expect(Number(localStorage.getItem('sudoku-incremental:pointokus'))).toBe(170);
+    expect(Number(localStorage.getItem('sudoku-incremental:pointokus'))).toBe(25);
     expect(game.activeBoard.id).toBe('board6x3');
   });
 
-  it('buyBoard with <430 points: no-op (unchanged points, not owned, default active)', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '429');
+  it('buyBoard with <575 points: no-op (unchanged points, not owned, default active)', () => {
+    localStorage.setItem('sudoku-incremental:pointokus', '574');
     const game = createGame();
 
     game.buyBoard('board6x3');
 
-    expect(game.pointokus).toBe(429);
+    expect(game.pointokus).toBe(574);
     expect(game.boards.find((b) => b.id === 'board6x3')!.owned).toBe(false);
     expect(game.activeBoard.id).toBe('default');
   });
@@ -106,19 +106,19 @@ describe('board selection and purchasing', () => {
     localStorage.setItem('sudoku-incremental:pointokus', '1200');
     const game = createGame();
 
-    game.buyBoard('board6x3'); // -430 → 770
+    game.buyBoard('board6x3'); // -575 → 625
     game.buyBoard('board6x3'); // already owned, no-op
 
-    expect(game.pointokus).toBe(770);
+    expect(game.pointokus).toBe(625);
   });
 
   it('selectBoard swaps per-board tier state and restores on return', () => {
-    // Need enough points: board6x3 costs 430, its medium tier costs 1605
-    localStorage.setItem('sudoku-incremental:pointokus', '2035');
+    // Need enough points: board6x3 costs 575, its medium tier costs 5170
+    localStorage.setItem('sudoku-incremental:pointokus', '5745');
     const game = createGame();
 
-    game.buyBoard('board6x3');  // -430 → 1605, active=board6x3
-    game.buyTier('medium');     // -1605 → 0, medium owned on board6x3
+    game.buyBoard('board6x3');  // -575 → 5170, active=board6x3
+    game.buyTier('medium');     // -5170 → 0, medium owned on board6x3
     game.selectTier('medium'); // medium selected on board6x3
 
     game.selectBoard('default');
@@ -141,7 +141,7 @@ describe('board selection and purchasing', () => {
   });
 
   it('preserves a solved board across switches; only resetAll clears it', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '500');
+    localStorage.setItem('sudoku-incremental:pointokus', '600');
     const game = createGame();
 
     game.buyBoard('board6x3'); // owns board6x3 and auto-selects it (default was idle)
@@ -393,7 +393,7 @@ describe('record multiplier and banking', () => {
   });
 
   it('stays 1 until the records unlock is owned, then reflects best times retroactively; resetAll banks pending × multiplier', () => {
-    localStorage.setItem('sudoku-incremental:pointokus', '2850');
+    localStorage.setItem('sudoku-incremental:pointokus', '22820');
     const times = [1000, 3000]; // one 2000ms solve
     let i = 0;
     vi.spyOn(performance, 'now').mockImplementation(() => times[Math.min(i++, times.length - 1)]);
@@ -407,7 +407,7 @@ describe('record multiplier and banking', () => {
     expect(game.recordMultiplier).toBe(1); // unlock not owned yet
     expect(game.lastWasRecord).toBe(true);
 
-    game.buyUnlock('records'); // 2850 → 0
+    game.buyUnlock('records'); // 22820 → 0
     expect(game.recordMultiplier).toBeCloseTo(8, 5); // retroactive: term at 2000ms = 8
 
     game.resetAll(); // banks round(10 × 8) = 80

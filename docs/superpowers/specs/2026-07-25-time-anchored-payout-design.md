@@ -81,10 +81,15 @@ worth of its anchor tier." Resulting costs (same `n` values):
 | speed-bonus | 30 | 30 |
 | default:medium | 125 | 125 |
 | board6x3 | 430 | 575 |
-| default:hard | 800 | ~3735 |
-| board6x3:medium | 1605 | ~2140 |
-| board6x3:hard | 2650 | ~17,660 |
-| records | 2850 | ~22,815 |
+| default:hard | 800 | 3735 |
+| board6x3:medium | 1605 | 5170 |
+| board6x3:hard | 2650 | 17,660 |
+| records | 2850 | 22,820 |
+
+`board6x3:medium` is re-anchored from itself to `board6x3:easy`: at the time-anchored
+rates the 6×3 Easy tier out-earns 6×3 Medium's old self-anchor, so measuring the cost
+in Easy solves keeps it affordable off the freshly-owned 6×3 board while still rising
+above `default:hard` (3735 → 5170 → 17,660 → 22,820 stays strictly monotonic).
 
 Solve counts per section stay in the designed range; mid/late wall-clock pacing
 stretches somewhat (engaged board6x3:hard section ~3 min → ~5 min). The `n` column in

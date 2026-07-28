@@ -1,6 +1,6 @@
 import type { DifficultyTier } from './config';
 import { BOARDS, BOARD_ORDER, GATE_COSTS, GLOBAL_MULTIPLIER, PROGRESSION } from './config';
-import { computeScore, boardWorth, difficultyFactor, recordTerm, globalRecordMultiplier } from './scoring';
+import { computeScore, boardWorth, difficultyFactor, timeFactor, recordTerm, globalRecordMultiplier } from './scoring';
 
 export interface SkillProfile {
   id: string;
@@ -36,6 +36,7 @@ export function solvePoints(
     globalMultiplier: GLOBAL_MULTIPLIER,
     boardWorth: boardWorth(b),
     difficultyFactor: difficultyFactor(tier.emptyCells, b.cols * b.rows),
+    timeFactor: timeFactor(tier.refSolveSec),
   }).points;
 }
 

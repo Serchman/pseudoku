@@ -55,6 +55,9 @@ export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'board6x3:medium', n: 18, anchor: 'board6x3:easy', withSpeed: true, requires: ['board6x3:easy'] },
   { gate: 'board6x3:hard', n: 20, anchor: 'board6x3:medium', withSpeed: true, requires: ['board6x3:medium'] },
   { gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] },
+  { gate: 'board3x9', n: 15, anchor: 'board6x3:hard', withSpeed: true, requires: ['records'] },
+  { gate: 'board3x9:medium', n: 40, anchor: 'board3x9:easy', withSpeed: true, requires: ['board3x9:easy'] },
+  { gate: 'board3x9:hard', n: 20, anchor: 'board3x9:medium', withSpeed: true, requires: ['board3x9:medium'] },
 ]
 
 // Board dimensions and per-tier blank-cell counts — the geometry the cost derivation
@@ -62,6 +65,7 @@ export const PROGRESSION: ProgressionEntry[] = [
 const BOARD_DIMS: Record<string, { cols: number; rows: number }> = {
   default: { cols: 3, rows: 3 },
   board6x3: { cols: 6, rows: 3 },
+  board3x9: { cols: 3, rows: 9 },
 }
 
 // Reference solve time is a property of the board+tier, not a linear function of
@@ -78,6 +82,11 @@ const TIER_BLANKS: Record<string, DifficultyTier[]> = {
     { id: 'easy', label: 'Easy', emptyCells: 6, refSolveSec: 7, cost: 0 },
     { id: 'medium', label: 'Medium', emptyCells: 10, refSolveSec: 10, cost: 0 },
     { id: 'hard', label: 'Hard', emptyCells: 14, refSolveSec: 12, cost: 0 },
+  ],
+  board3x9: [
+    { id: 'easy', label: 'Easy', emptyCells: 9, refSolveSec: 15, cost: 0 },
+    { id: 'medium', label: 'Medium', emptyCells: 15, refSolveSec: 22, cost: 0 },
+    { id: 'hard', label: 'Hard', emptyCells: 21, refSolveSec: 28, cost: 0 },
   ],
 }
 
@@ -144,6 +153,25 @@ export const BOARDS: Record<string, BoardConfig> = {
     ],
     tiers: tiersFor('board6x3'),
   },
+  board3x9: {
+    id: 'board3x9',
+    name: '3×9',
+    caption: '1–9 PER BLOCK · NO COL REPEATS',
+    ...BOARD_DIMS.board3x9,
+    blockCols: 3,
+    blockRows: 3,
+    symbols: 9,
+    constraints: { rows: false, cols: true },
+    cost: GATE_COSTS['board3x9'],
+    brackets: [
+      { maxSec: 30, mult: 15 },
+      { maxSec: 45, mult: 8 },
+      { maxSec: 65, mult: 5 },
+      { maxSec: 95, mult: 3 },
+      { maxSec: Infinity, mult: 1 },
+    ],
+    tiers: tiersFor('board3x9'),
+  },
 }
 
-export const BOARD_ORDER: string[] = ['default', 'board6x3']
+export const BOARD_ORDER: string[] = ['default', 'board6x3', 'board3x9']

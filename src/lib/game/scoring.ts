@@ -3,7 +3,7 @@ import { EXP_BASE, POINT_SCALE, RECORD_WEIGHT } from './config';
 
 // boardWorth / difficultyFactor now live in formula.ts; re-export so existing
 // importers (state.svelte.ts, scoring.test.ts) keep importing them from here.
-export { boardWorth, difficultyFactor } from './formula';
+export { boardWorth, difficultyFactor, timeFactor } from './formula';
 
 export interface ScoreResult {
   points: number;
@@ -47,9 +47,9 @@ export function speedFactor(timeMs: number, brackets: Bracket[]): number {
 export function computeScore(
   timeMs: number,
   brackets: Bracket[],
-  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number },
+  opts: { speedBonusOwned: boolean; globalMultiplier: number; boardWorth: number; difficultyFactor: number; timeFactor: number },
 ): ScoreResult {
-  const base = POINT_SCALE * opts.boardWorth * opts.difficultyFactor;
+  const base = POINT_SCALE * opts.timeFactor * opts.boardWorth * opts.difficultyFactor;
 
   if (!opts.speedBonusOwned) {
     return { points: Math.round(base), bracketMult: 1, expFactor: 1, speedApplied: false };

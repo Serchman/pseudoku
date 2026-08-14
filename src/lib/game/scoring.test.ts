@@ -5,7 +5,7 @@ import { BOARDS, POINT_SCALE } from './config';
 const brackets = BOARDS.default.brackets;
 
 // Reference board+tier factors (3×3 Easy) = 1.0 each, so the baseline payout is POINT_SCALE.
-const ref = { boardWorth: 1, difficultyFactor: 1 };
+const ref = { boardWorth: 1, difficultyFactor: 1, timeFactor: 1 };
 
 describe('speedFactor', () => {
   it('equals the bracket mult exactly at a bracket boundary (expFactor = 1)', () => {
@@ -80,21 +80,27 @@ describe('computeScore', () => {
 
   it('scales the base payout by boardWorth (±1 for rounding)', () => {
     const base = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref });
-    const bigger = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, boardWorth: 2, difficultyFactor: 1 });
+    const bigger = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref, boardWorth: 2 });
 
     expect(bigger.points).toBeGreaterThanOrEqual(base.points * 2 - 1);
     expect(bigger.points).toBeLessThanOrEqual(base.points * 2 + 1);
   });
 
+  it('scales the base payout by timeFactor (±1 for rounding)', () => {
+    const base = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref });
+    const anchored = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref, timeFactor: 8 });
+    expect(Math.abs(anchored.points - 8 * base.points)).toBeLessThanOrEqual(1);
+  });
+
   it('applies difficultyFactor to the base payout when speed bonus is not owned', () => {
-    const result = computeScore(1000, brackets, { speedBonusOwned: false, globalMultiplier: 1, boardWorth: 1, difficultyFactor: 2 });
+    const result = computeScore(1000, brackets, { speedBonusOwned: false, globalMultiplier: 1, ...ref, difficultyFactor: 2 });
     expect(result.points).toBe(POINT_SCALE * 2);
     expect(result.speedApplied).toBe(false);
   });
 
   it('scales speed-bonus points proportionally with difficultyFactor (±1 for rounding)', () => {
     const base = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref });
-    const scaled = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, boardWorth: 1, difficultyFactor: 3.5 });
+    const scaled = computeScore(3000, brackets, { speedBonusOwned: true, globalMultiplier: 1, ...ref, difficultyFactor: 3.5 });
 
     expect(scaled.points).toBeGreaterThanOrEqual(base.points * 3.5 - 1);
     expect(scaled.points).toBeLessThanOrEqual(base.points * 3.5 + 1);

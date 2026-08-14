@@ -71,6 +71,26 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ---
 
+## 5. Git Worktree Discipline (multi-agent safety)
+
+**Multiple agents work in this repository simultaneously, sharing the primary checkout. A branch switch or file write in the shared directory breaks other agents' in-flight work.**
+
+- Never run `git checkout` / `git switch`, or create/delete branches, in the primary
+  working directory (`D:\Development\Personal Apps\games\sudokuincremental`).
+- Before writing or editing ANY file as part of feature/fix work, move into an isolated
+  git worktree on your own branch (use the EnterWorktree tool or the
+  `superpowers:using-git-worktrees` skill; fallback: `git worktree add`). Branch off
+  `main` unless told otherwise. This applies even when a file's runtime destination is
+  the primary directory — commit to `main` and merge instead of writing there directly.
+- One branch = one agent. Never work on a branch another session is using.
+- Git state changes (branch create/delete, commit, push) and the transition from
+  discussion to writing files require the user's explicit instruction.
+- A PreToolUse hook (`.claude/hooks/worktree-guard.ps1`) enforces the write and
+  branch-switch rules mechanically; if it blocks you, use a worktree — don't work
+  around it.
+
+---
+
 ## Project: Sudoku Incremental
 
 **Stack:** Svelte 5 (runes: `$state`, `$props`, etc.) + TypeScript + Vite. Tests: Vitest.

@@ -7,11 +7,11 @@ import { UNLOCKS } from './unlocks';
 const EXPECTED: Record<string, number> = {
   'speed-bonus': 30,
   'default:medium': 125,
-  'board6x3': 430,
-  'default:hard': 800,
-  'board6x3:medium': 1605,
-  'board6x3:hard': 2650,
-  'records': 2850,
+  'board6x3': 575,
+  'default:hard': 3735,
+  'board6x3:medium': 5170,
+  'board6x3:hard': 17660,
+  'records': 22820,
 };
 
 describe('derived unlock ladder', () => {
@@ -22,10 +22,10 @@ describe('derived unlock ladder', () => {
   it('wires derived costs into UNLOCKS, board, and tier configs', () => {
     expect(UNLOCKS.find((u) => u.id === 'speed-bonus')!.cost).toBe(30);
     expect(BOARDS.default.tiers.find((t) => t.id === 'medium')!.cost).toBe(125);
-    expect(BOARDS.default.tiers.find((t) => t.id === 'hard')!.cost).toBe(800);
-    expect(BOARDS.board6x3.cost).toBe(430);
-    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'medium')!.cost).toBe(1605);
-    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'hard')!.cost).toBe(2650);
+    expect(BOARDS.default.tiers.find((t) => t.id === 'hard')!.cost).toBe(3735);
+    expect(BOARDS.board6x3.cost).toBe(575);
+    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'medium')!.cost).toBe(5170);
+    expect(BOARDS.board6x3.tiers.find((t) => t.id === 'hard')!.cost).toBe(17660);
   });
 
   it('rises monotonically along the progression', () => {

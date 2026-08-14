@@ -141,7 +141,7 @@ export interface SectionResult {
 }
 
 // Grind with `strategy` from `start` until `gate` is bought. Mirrors the real game:
-// solves accrue pending; banking (the resetAll prestige) converts pending × record
+// solves accrue pending; banking (resetAll) converts pending × record
 // multiplier into pointokus; bank-and-buy happens the moment the gate is affordable.
 export function simulateSection(
   start: SimState,

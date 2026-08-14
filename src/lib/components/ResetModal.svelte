@@ -26,7 +26,7 @@
   <div class="card" onclick={(e) => e.stopPropagation()}>
     <div class="header">
       <span class="header-icon">↺</span>
-      <span class="header-title">CONFIRM PRESTIGE</span>
+      <span class="header-title">CONFIRM RESET</span>
       <button class="close" onclick={oncancel}>✕</button>
     </div>
 
@@ -34,7 +34,8 @@
 
     <div class="body">
       <div class="description">
-        Wipes every board and restarts the run. You keep the points below.
+        Wipes every board and restarts the run. Your unlocks, owned boards and best
+        times are kept, and the points below are banked.
       </div>
 
       <div class="breakdown">

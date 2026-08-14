@@ -305,7 +305,7 @@ describe('cursor auto-advance', () => {
   })
 })
 
-describe('prestige breakdown', () => {
+describe('reset breakdown', () => {
   beforeEach(() => {
     localStorage.clear()
   })
@@ -313,7 +313,7 @@ describe('prestige breakdown', () => {
   it('is empty for a fresh game', () => {
     const game = createGame()
 
-    expect(game.prestigeBreakdown).toEqual([])
+    expect(game.resetBreakdown).toEqual([])
   })
 
   it('has one entry after solving the active board', () => {
@@ -322,10 +322,10 @@ describe('prestige breakdown', () => {
     game.start()
     solveDefault(game)
 
-    expect(game.prestigeBreakdown).toHaveLength(1)
-    expect(game.prestigeBreakdown[0].points).toBe(game.pendingPoints)
-    expect(game.prestigeBreakdown[0].id).toBe('default')
-    expect(game.prestigeBreakdown[0].name).toBeTruthy()
+    expect(game.resetBreakdown).toHaveLength(1)
+    expect(game.resetBreakdown[0].points).toBe(game.pendingPoints)
+    expect(game.resetBreakdown[0].id).toBe('default')
+    expect(game.resetBreakdown[0].name).toBeTruthy()
 
     game.resetAll() // stop the timer
   })
@@ -337,7 +337,7 @@ describe('prestige breakdown', () => {
     solveDefault(game)
     game.resetAll()
 
-    expect(game.prestigeBreakdown).toEqual([])
+    expect(game.resetBreakdown).toEqual([])
     expect(game.pendingPoints).toBe(0)
   })
 })
@@ -409,6 +409,10 @@ describe('record multiplier and banking', () => {
 
     game.buyUnlock('records') // 2850 → 0
     expect(game.recordMultiplier).toBeCloseTo(1.079545, 5) // retroactive: term at 2000ms is the small record bonus
+
+    // What the reset button previews must be exactly what resetAll banks — not raw pending.
+    expect(game.bankPreview).toBe(11)
+    expect(game.bankPreview).not.toBe(game.pendingPoints)
 
     game.resetAll() // banks round(10 × 1.079545) = 11
     expect(game.pointokus).toBe(11)

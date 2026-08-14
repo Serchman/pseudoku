@@ -170,7 +170,7 @@
 </div>
 
 <style>
-  /* Above the board, below the prestige modal (60) — a modal always wins. */
+  /* Above the board, below the reset modal (60) — a modal always wins. */
   .overlay {
     position: fixed;
     inset: 0;

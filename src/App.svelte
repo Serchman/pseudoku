@@ -8,10 +8,10 @@
   import SettingsView from './lib/components/SettingsView.svelte';
   import StatisticsView from './lib/components/StatisticsView.svelte';
   import SpeedMeter from './lib/components/SpeedMeter.svelte';
-  import PrestigeModal from './lib/components/PrestigeModal.svelte';
+  import ResetModal from './lib/components/ResetModal.svelte';
   import KeypadPicker from './lib/components/KeypadPicker.svelte';
 
-  let showPrestige = $state(false);
+  let showReset = $state(false);
   let picker: KeypadPicker | undefined = $state();
 
   function onKeydown(e: KeyboardEvent) {
@@ -39,18 +39,18 @@
         <span class="points-box-value">{game.pointokus}</span>
       </div>
       <button
-        class="prestige-btn"
+        class="reset-btn"
         class:active={game.pendingPoints > 0}
-        onclick={() => (showPrestige = true)}
+        onclick={() => (showReset = true)}
       >
-        <span class="prestige-text">
-          <span class="prestige-label">↺ PRESTIGE</span>
+        <span class="reset-text">
+          <span class="reset-label">↺ RESET</span>
         </span>
         {#if game.pendingPoints > 0}
-          <span class="prestige-divider"></span>
-          <span class="prestige-gain">
-            <span class="prestige-gain-value">+{game.pendingPoints}</span>
-            <span class="prestige-gain-label">POINTS</span>
+          <span class="reset-divider"></span>
+          <span class="reset-gain">
+            <span class="reset-gain-value">+{game.bankPreview}</span>
+            <span class="reset-gain-label">POINTS</span>
           </span>
         {/if}
       </button>
@@ -126,14 +126,14 @@
     {/if}
   </div>
 
-  {#if showPrestige}
-    <PrestigeModal
+  {#if showReset}
+    <ResetModal
       pending={game.pendingPoints}
-      breakdown={game.prestigeBreakdown}
+      breakdown={game.resetBreakdown}
       multiplier={game.recordMultiplier}
       total={game.bankPreview}
-      onconfirm={() => { game.resetAll(); showPrestige = false; }}
-      oncancel={() => (showPrestige = false)}
+      onconfirm={() => { game.resetAll(); showReset = false; }}
+      oncancel={() => (showReset = false)}
     />
   {/if}
 
@@ -206,7 +206,7 @@
     line-height: 1;
   }
 
-  .prestige-btn {
+  .reset-btn {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -217,38 +217,38 @@
     cursor: pointer;
   }
 
-  .prestige-btn.active {
+  .reset-btn.active {
     box-shadow: 0 0 24px rgba(94, 234, 212, 0.14);
   }
 
-  .prestige-text {
+  .reset-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
   }
 
-  .prestige-label {
+  .reset-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
     letter-spacing: 2.5px;
     color: var(--accent);
   }
 
-  .prestige-divider {
+  .reset-divider {
     width: 1px;
     height: 34px;
     background: var(--accent-border);
   }
 
-  .prestige-gain {
+  .reset-gain {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1px;
   }
 
-  .prestige-gain-value {
+  .reset-gain-value {
     font-family: 'JetBrains Mono', monospace;
     font-size: 24px;
     font-weight: 700;
@@ -256,7 +256,7 @@
     line-height: 1;
   }
 
-  .prestige-gain-label {
+  .reset-gain-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 8.5px;
     letter-spacing: 2px;
@@ -432,7 +432,7 @@
 
   @media (max-width: 640px) {
     /* Phase 2 — compact top bar. Drop the wordmark block; spread the POINTS
-       chip and PRESTIGE button across the full width. */
+       chip and RESET button across the full width. */
     .topbar-left { display: none; }
     .topbar-center { width: 100%; justify-content: space-between; gap: 10px; }
 
@@ -444,14 +444,14 @@
     .points-box-label { font-size: 8px; letter-spacing: 2.5px; }
     .points-box-value { font-size: 18px; }
 
-    .prestige-btn { gap: 8px; padding: 8px 12px; }
-    .prestige-label { font-size: 10.5px; letter-spacing: 1.5px; }
-    .prestige-divider { height: 18px; }
-    .prestige-gain-value {
+    .reset-btn { gap: 8px; padding: 8px 12px; }
+    .reset-label { font-size: 10.5px; letter-spacing: 1.5px; }
+    .reset-divider { height: 18px; }
+    .reset-gain-value {
       font-size: 15px;
       text-shadow: 0 0 10px rgba(94, 234, 212, 0.4);
     }
-    .prestige-gain-label { display: none; }
+    .reset-gain-label { display: none; }
 
     /* Phase 3 — segmented tab strip. Restyle the desktop underline tabs into a
        pill/segmented control; behavior (game.setView) is unchanged. */

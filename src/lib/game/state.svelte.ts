@@ -287,7 +287,7 @@ export function createGame() {
         lastResult.timeMs === records[activeBoardId]
       );
     },
-    get prestigeBreakdown(): { id: string; name: string; points: number }[] {
+    get resetBreakdown(): { id: string; name: string; points: number }[] {
       return BOARD_ORDER.flatMap((id) => {
         const isActive = id === activeBoardId;
         const st = isActive ? status : boardStates[id]?.status;

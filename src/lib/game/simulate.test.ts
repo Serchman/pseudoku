@@ -137,6 +137,7 @@ describe('rateTable', () => {
     expect(rows.map((r) => `${r.boardId}:${r.tierId}`)).toEqual([
       'default:easy', 'default:medium', 'default:hard',
       'board6x3:easy', 'board6x3:medium', 'board6x3:hard',
+      'board3x9:easy', 'board3x9:medium', 'board3x9:hard',
     ]);
     // engaged 3×3 Easy: 50 pts / 6 s wall-clock → ×60
     expect(rows[0].pointsPerMin).toBeCloseTo((50 / 6) * 60);
@@ -154,8 +155,12 @@ describe('rate ladder', () => {
       expect(rates['default:hard'], p.id).toBeGreaterThan(rates['default:medium']);
       expect(rates['board6x3:medium'], p.id).toBeGreaterThan(rates['board6x3:easy']);
       expect(rates['board6x3:hard'], p.id).toBeGreaterThan(rates['board6x3:medium']);
+      expect(rates['board3x9:medium'], p.id).toBeGreaterThan(rates['board3x9:easy']);
+      expect(rates['board3x9:hard'], p.id).toBeGreaterThan(rates['board3x9:medium']);
       // cross-board: the 6×3 floor clears the 3×3 ceiling
       expect(rates['board6x3:easy'], p.id).toBeGreaterThan(rates['default:hard']);
+      // cross-board: the 3×9 floor clears the 6×3 ceiling
+      expect(rates['board3x9:easy'], p.id).toBeGreaterThan(rates['board6x3:hard']);
     }
   });
 });
@@ -172,6 +177,9 @@ const EXPECTED_ENGAGED_CUMULATIVE_SEC: Record<string, number> = {
   'board6x3:medium': 289,
   'board6x3:hard': 588,
   'records': 858,
+  'board3x9': 1155,
+  'board3x9:medium': 1353,
+  'board3x9:hard': 1588,
 };
 const BAND = 0.25;
 

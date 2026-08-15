@@ -122,6 +122,55 @@ describe('board6x3', () => {
   });
 });
 
+describe('board3x9', () => {
+  it('isComplete recognizes a full 3×9 solution as complete', () => {
+    expect(isComplete(generatePuzzle(BOARDS.board3x9, 0), BOARDS.board3x9)).toBe(true);
+  });
+
+  it('generatePuzzle yields a full solution with 9 distinct values per block and distinct columns', () => {
+    const board = generatePuzzle(BOARDS.board3x9, 0);
+    expect(board).toHaveLength(27);
+
+    // Each block must have 9 distinct values 1..9
+    const blocks = toBlocks(board, BOARDS.board3x9);
+    for (const block of blocks) {
+      const vals = new Set(block.map(({ cell }) => cell.value));
+      expect(vals.size).toBe(9);
+      expect([...vals].every((v) => v! >= 1 && v! <= 9)).toBe(true);
+    }
+
+    // Every 9-cell column must have distinct values
+    for (let c = 0; c < 3; c++) {
+      const colVals = new Set<number | null>();
+      for (let r = 0; r < 9; r++) {
+        colVals.add(board[r * 3 + c].value);
+      }
+      expect(colVals.size).toBe(9);
+    }
+  });
+
+  it('isComplete is false when a column repeats even though each block is individually valid', () => {
+    // Fill all three stacked blocks with 1..9 in identical row-major order.
+    // Each block holds 1..9, but column 0 = [1,4,7,1,4,7,1,4,7] → repeats.
+    const board: Board = Array(27)
+      .fill(null)
+      .map(() => ({ value: null, prefilled: false }));
+    for (let i = 0; i < 27; i++) {
+      board[i] = { value: (i % 9) + 1, prefilled: false };
+    }
+    expect(isComplete(board, BOARDS.board3x9)).toBe(false);
+  });
+
+  it('toBlocks returns 3 blocks of 9, covering indices 0..26 exactly once', () => {
+    const board = generatePuzzle(BOARDS.board3x9, 0);
+    const blocks = toBlocks(board, BOARDS.board3x9);
+    expect(blocks).toHaveLength(3);
+    for (const block of blocks) expect(block).toHaveLength(9);
+    const allIndices = blocks.flat().map(({ index }) => index);
+    expect(allIndices.sort((a, b) => a - b)).toEqual(Array.from({ length: 27 }, (_, i) => i));
+  });
+});
+
 describe('findConflicts', () => {
   function emptyBoard(size: number): Board {
     return Array(size)
@@ -158,6 +207,16 @@ describe('findConflicts', () => {
     board[6] = { value: 2, prefilled: false }; // same column
     const conflicts = findConflicts(board, BOARDS.board6x3);
     expect(conflicts).toEqual(new Set([0, 6]));
+  });
+
+  it('detects column duplicates in the 3×9 board and returns both indices', () => {
+    // board3x9: column 0 is indices 0, 3, 6, ..., 24; indices 0 and 9 share the
+    // column but sit in different blocks, isolating the column rule.
+    const board = emptyBoard(27);
+    board[0] = { value: 4, prefilled: false };
+    board[9] = { value: 4, prefilled: false }; // same column, different block
+    const conflicts = findConflicts(board, BOARDS.board3x9);
+    expect(conflicts).toEqual(new Set([0, 9]));
   });
 
   it('detects block (box) duplicates and returns both indices', () => {

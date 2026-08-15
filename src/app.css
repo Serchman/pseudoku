@@ -201,16 +201,19 @@ body {
     display: flex;
     padding: max(10px, env(safe-area-inset-top)) 14px 10px;
   }
-  .body { flex-direction: column; }
+  .body {
+    flex-direction: column;
+  }
   /* Desktop aside is hidden on mobile; its board-picker + tier content is
      served by the BoardsSheet bottom drawer instead (Phase 5). */
-  .sidebar { display: none; }
+  .sidebar {
+    display: none;
+  }
   .board-area {
     justify-content: flex-start;
     gap: 12px;
     width: 100%;
     padding: 12px max(12px, env(safe-area-inset-left))
-             calc(56px + max(16px, env(safe-area-inset-bottom))) max(12px, env(safe-area-inset-right));
+      calc(56px + max(16px, env(safe-area-inset-bottom))) max(12px, env(safe-area-inset-right));
   }
 }
-

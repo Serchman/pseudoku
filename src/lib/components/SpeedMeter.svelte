@@ -4,7 +4,9 @@
 
   // Bar geometry never changes for a board — compute it once, not every tick.
   const { segments, horizonSec } = computeSegments(game.activeBoard.brackets);
-  const pos = $derived(computeMeterPosition(game.elapsed / 1000, game.activeBoard.brackets, horizonSec));
+  const pos = $derived(
+    computeMeterPosition(game.elapsed / 1000, game.activeBoard.brackets, horizonSec),
+  );
 </script>
 
 <div class="speed-meter">

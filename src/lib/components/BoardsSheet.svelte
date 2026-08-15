@@ -6,7 +6,7 @@
 
   // Light up the collapsed-bar dot when anything in the drawer can be bought.
   const anyBuyable = $derived(
-    game.boards.some((b) => b.buyable) || game.tiers.some((t) => t.buyable)
+    game.boards.some((b) => b.buyable) || game.tiers.some((t) => t.buyable),
   );
 
   function close() {
@@ -14,7 +14,11 @@
   }
 </script>
 
-<svelte:window onkeydown={(e) => { if (e.key === 'Escape' && open) close(); }} />
+<svelte:window
+  onkeydown={(e) => {
+    if (e.key === 'Escape' && open) close();
+  }}
+/>
 
 <div class="sheet-root">
   {#if open}
@@ -72,14 +76,15 @@
       border-top: 1px solid var(--border-5);
       border-radius: 20px 20px 0 0;
       box-shadow: 0 -12px 34px rgba(0, 0, 0, 0.5);
-      padding: 0 max(16px, env(safe-area-inset-right))
-               max(16px, env(safe-area-inset-bottom))
-               max(16px, env(safe-area-inset-left));
+      padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
     }
 
     .sheet.open {
       border-top-color: var(--accent-border);
-      box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(94, 234, 212, 0.06);
+      box-shadow:
+        0 -20px 50px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(94, 234, 212, 0.06);
     }
 
     .bar {

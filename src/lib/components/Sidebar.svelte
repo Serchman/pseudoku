@@ -18,7 +18,7 @@
           class:ready={b.owned && !b.active && !b.done}
           class:locked={!b.owned}
           disabled={game.status === 'playing'}
-          onclick={() => b.owned ? game.selectBoard(b.id) : game.buyBoard(b.id)}
+          onclick={() => (b.owned ? game.selectBoard(b.id) : game.buyBoard(b.id))}
         >
           {#if !b.owned}
             <span class="board-lock">🔒</span>
@@ -64,11 +64,12 @@
               <button
                 class="tier-btn"
                 onclick={() => game.selectTier(tier.id)}
-                disabled={game.status === 'playing'}
-              >SELECT</button>
+                disabled={game.status === 'playing'}>SELECT</button
+              >
             {/if}
           {:else if tier.buyable}
-            <button class="tier-btn buy" onclick={() => game.buyTier(tier.id)}>{tier.cost} P</button>
+            <button class="tier-btn buy" onclick={() => game.buyTier(tier.id)}>{tier.cost} P</button
+            >
           {:else}
             <span class="unlock-badge locked">🔒 {tier.cost}</span>
           {/if}

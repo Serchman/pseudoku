@@ -34,8 +34,8 @@
 
     <div class="body">
       <div class="description">
-        Wipes every board and restarts the run. Your unlocks, owned boards and best
-        times are kept, and the points below are banked.
+        Wipes every board and restarts the run. Your unlocks, owned boards and best times are kept,
+        and the points below are banked.
       </div>
 
       <div class="breakdown">

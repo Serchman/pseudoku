@@ -1,16 +1,24 @@
 import { gateCost } from './formula'
-export { POINT_SCALE, SIZE_EXP, DIFF_EXP, REF_CELLS, REF_DENSITY, REF_SOLVE_SEC, REF_SPEED_MULT } from './formula'
+export {
+  POINT_SCALE,
+  SIZE_EXP,
+  DIFF_EXP,
+  REF_CELLS,
+  REF_DENSITY,
+  REF_SOLVE_SEC,
+  REF_SPEED_MULT,
+} from './formula'
 
 export const BOARD_SIZE = 9
 export const EMPTY_CELLS = 3
 
-export const EXP_BASE = 1.5         // intra-bracket exponential base (tunable, shared default)
-export const RECORD_WEIGHT = 0.125  // per-board max record bonus (12.5%) at theoretical-best time
-export const GLOBAL_MULTIPLIER = 1  // reserved for future unlocks; not upgradeable in this scope
+export const EXP_BASE = 1.5 // intra-bracket exponential base (tunable, shared default)
+export const RECORD_WEIGHT = 0.125 // per-board max record bonus (12.5%) at theoretical-best time
+export const GLOBAL_MULTIPLIER = 1 // reserved for future unlocks; not upgradeable in this scope
 
 export interface Bracket {
   maxSec: number // upper time bound (seconds) of this bracket; last entry uses Infinity
-  mult: number   // bracket multiplier
+  mult: number // bracket multiplier
 }
 
 export interface DifficultyTier {
@@ -18,28 +26,28 @@ export interface DifficultyTier {
   label: string
   emptyCells: number // blank cells the player must fill
   refSolveSec: number // skilled-play reference solve time (s) — scoring/sim anchor
-  cost: number       // pointokus to unlock (0 = free starter tier)
+  cost: number // pointokus to unlock (0 = free starter tier)
 }
 
 export interface BoardConfig {
   id: string
-  name: string                           // short display name (e.g. '3×3', '6×3')
-  caption: string                        // board-area rule text shown above the grid
-  cols: number                           // cell grid width
-  rows: number                           // cell grid height
-  blockCols: number                      // single block width
-  blockRows: number                      // single block height
-  symbols: number                        // distinct symbols (9 for both boards)
+  name: string // short display name (e.g. '3×3', '6×3')
+  caption: string // board-area rule text shown above the grid
+  cols: number // cell grid width
+  rows: number // cell grid height
+  blockCols: number // single block width
+  blockRows: number // single block height
+  symbols: number // distinct symbols (9 for both boards)
   constraints: { rows: boolean; cols: boolean } // enforce row/col uniqueness across full grid
-  cost: number                           // pointokus to unlock (0 = free / always owned)
+  cost: number // pointokus to unlock (0 = free / always owned)
   brackets: Bracket[]
-  tiers: DifficultyTier[]                // ordered; tiers[0] is the free starter, bought sequentially
+  tiers: DifficultyTier[] // ordered; tiers[0] is the free starter, bought sequentially
 }
 
 export interface ProgressionEntry {
-  gate: string       // gate id: 'speed-bonus' | boardId | 'boardId:tierId'
-  n: number          // solves-per-gate (escalation lever)
-  anchor: string     // tier id the cost is measured in: 'boardId:tierId'
+  gate: string // gate id: 'speed-bonus' | boardId | 'boardId:tierId'
+  n: number // solves-per-gate (escalation lever)
+  anchor: string // tier id the cost is measured in: 'boardId:tierId'
   withSpeed: boolean // fold REF_SPEED_MULT (true for gates bought after Speed Bonus)
   requires: string[] // prerequisites — documentation only; gating stays sequential for now
 }
@@ -49,15 +57,57 @@ export interface ProgressionEntry {
 // availability do not depend on list position. See the unlock-cost-rebalance design doc.
 export const PROGRESSION: ProgressionEntry[] = [
   { gate: 'speed-bonus', n: 3, anchor: 'default:easy', withSpeed: false, requires: [] },
-  { gate: 'default:medium', n: 5, anchor: 'default:easy', withSpeed: true, requires: ['default:easy'] },
-  { gate: 'board6x3', n: 8, anchor: 'default:medium', withSpeed: true, requires: ['default:medium'] },
-  { gate: 'default:hard', n: 13, anchor: 'board6x3:easy', withSpeed: true, requires: ['default:medium'] },
-  { gate: 'board6x3:medium', n: 18, anchor: 'board6x3:easy', withSpeed: true, requires: ['board6x3:easy'] },
-  { gate: 'board6x3:hard', n: 20, anchor: 'board6x3:medium', withSpeed: true, requires: ['board6x3:medium'] },
+  {
+    gate: 'default:medium',
+    n: 5,
+    anchor: 'default:easy',
+    withSpeed: true,
+    requires: ['default:easy'],
+  },
+  {
+    gate: 'board6x3',
+    n: 8,
+    anchor: 'default:medium',
+    withSpeed: true,
+    requires: ['default:medium'],
+  },
+  {
+    gate: 'default:hard',
+    n: 13,
+    anchor: 'board6x3:easy',
+    withSpeed: true,
+    requires: ['default:medium'],
+  },
+  {
+    gate: 'board6x3:medium',
+    n: 18,
+    anchor: 'board6x3:easy',
+    withSpeed: true,
+    requires: ['board6x3:easy'],
+  },
+  {
+    gate: 'board6x3:hard',
+    n: 20,
+    anchor: 'board6x3:medium',
+    withSpeed: true,
+    requires: ['board6x3:medium'],
+  },
   { gate: 'records', n: 13, anchor: 'board6x3:hard', withSpeed: true, requires: ['board6x3:hard'] },
   { gate: 'board3x9', n: 15, anchor: 'board6x3:hard', withSpeed: true, requires: ['records'] },
-  { gate: 'board3x9:medium', n: 40, anchor: 'board3x9:easy', withSpeed: true, requires: ['board3x9:easy'] },
-  { gate: 'board3x9:hard', n: 20, anchor: 'board3x9:medium', withSpeed: true, requires: ['board3x9:medium'] },
+  {
+    gate: 'board3x9:medium',
+    n: 40,
+    anchor: 'board3x9:easy',
+    withSpeed: true,
+    requires: ['board3x9:easy'],
+  },
+  {
+    gate: 'board3x9:hard',
+    n: 20,
+    anchor: 'board3x9:medium',
+    withSpeed: true,
+    requires: ['board3x9:medium'],
+  },
 ]
 
 // Board dimensions and per-tier blank-cell counts — the geometry the cost derivation
@@ -90,7 +140,12 @@ const TIER_BLANKS: Record<string, DifficultyTier[]> = {
   ],
 }
 
-function anchorDims(anchorId: string): { cols: number; rows: number; emptyCells: number; refSolveSec: number } {
+function anchorDims(anchorId: string): {
+  cols: number
+  rows: number
+  emptyCells: number
+  refSolveSec: number
+} {
   const [boardId, tierId] = anchorId.split(':')
   const { cols, rows } = BOARD_DIMS[boardId]
   const t = TIER_BLANKS[boardId].find((tier) => tier.id === tierId)!

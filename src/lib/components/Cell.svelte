@@ -26,7 +26,9 @@
   class:conflict
   disabled={cell.prefilled}
   onclick={onSelect}
-  onpointerdown={(e) => { if (e.pointerType === 'touch') onPress?.(e); }}
+  onpointerdown={(e) => {
+    if (e.pointerType === 'touch') onPress?.(e);
+  }}
 >
   {cell.value ?? ''}
   {#if selected && cell.value == null}

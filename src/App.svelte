@@ -1,108 +1,56 @@
 <script lang="ts">
-  import { game } from "./lib/game/state.svelte"
-  import Board from "./lib/components/Board.svelte"
-  import NumberPad from "./lib/components/NumberPad.svelte"
-  import Sidebar from "./lib/components/Sidebar.svelte"
-  import BoardsSheet from "./lib/components/BoardsSheet.svelte"
-  import UnlocksView from "./lib/components/UnlocksView.svelte"
-  import SettingsView from "./lib/components/SettingsView.svelte"
-  import StatisticsView from "./lib/components/StatisticsView.svelte"
-  import SpeedMeter from "./lib/components/SpeedMeter.svelte"
-  import ResetModal from "./lib/components/ResetModal.svelte"
-  import KeypadPicker from "./lib/components/KeypadPicker.svelte"
+  import { game } from './lib/game/state.svelte';
+  import Board from './lib/components/Board.svelte';
+  import NumberPad from './lib/components/NumberPad.svelte';
+  import Sidebar from './lib/components/Sidebar.svelte';
+  import BoardsSheet from './lib/components/BoardsSheet.svelte';
+  import UnlocksView from './lib/components/UnlocksView.svelte';
+  import SettingsView from './lib/components/SettingsView.svelte';
+  import StatisticsView from './lib/components/StatisticsView.svelte';
+  import SpeedMeter from './lib/components/SpeedMeter.svelte';
+  import ResetModal from './lib/components/ResetModal.svelte';
+  import KeypadPicker from './lib/components/KeypadPicker.svelte';
 
-  let showReset =
-    $state(false)
-  let picker:
-    | KeypadPicker
-    | undefined = $state()
+  let showReset = $state(false);
+  let picker: KeypadPicker | undefined = $state();
 
-  function onKeydown(
-    e: KeyboardEvent,
-  ) {
-    if (
-      game.status !==
-      "playing"
-    )
-      return
-    if (
-      e.key >= "1" &&
-      e.key <= "9"
-    ) {
-      game.place(
-        Number(e.key),
-      )
-    } else if (
-      e.key === "Backspace" ||
-      e.key === "Delete"
-    ) {
-      game.clear()
+  function onKeydown(e: KeyboardEvent) {
+    if (game.status !== 'playing') return;
+    if (e.key >= '1' && e.key <= '9') {
+      game.place(Number(e.key));
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      game.clear();
     }
   }
 </script>
 
-<svelte:window
-  onkeydown={onKeydown}
-/>
+<svelte:window onkeydown={onKeydown} />
 
 <div class="app">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="status-dot"
-      ></span>
-      <span class="wordmark"
-        >SUDOKU_INCREMENTAL<span
-          class="accent"
-          >_</span
-        ></span
-      >
-      <span class="version"
-        >v0.1</span
-      >
+      <span class="status-dot"></span>
+      <span class="wordmark">SUDOKU_INCREMENTAL<span class="accent">_</span></span>
+      <span class="version">v0.1</span>
     </div>
-    <div
-      class="topbar-center"
-    >
+    <div class="topbar-center">
       <div class="points-box">
-        <span
-          class="points-box-label"
-          >POINTS</span
-        >
-        <span
-          class="points-box-value"
-          >{game.pointokus}</span
-        >
+        <span class="points-box-label">POINTS</span>
+        <span class="points-box-value">{game.pointokus}</span>
       </div>
       <button
         class="reset-btn"
-        class:active={game.pendingPoints >
-          0}
-        onclick={() =>
-          (showReset = true)}
+        class:active={game.pendingPoints > 0}
+        onclick={() => (showReset = true)}
       >
-        <span
-          class="reset-text"
-        >
-          <span
-            class="reset-label"
-            >↺ RESET</span
-          >
+        <span class="reset-text">
+          <span class="reset-label">↺ RESET</span>
         </span>
         {#if game.pendingPoints > 0}
-          <span
-            class="reset-divider"
-          ></span>
-          <span
-            class="reset-gain"
-          >
-            <span
-              class="reset-gain-value"
-              >+{game.bankPreview}</span
-            >
-            <span
-              class="reset-gain-label"
-              >POINTS</span
-            >
+          <span class="reset-divider"></span>
+          <span class="reset-gain">
+            <span class="reset-gain-value">+{game.bankPreview}</span>
+            <span class="reset-gain-label">POINTS</span>
           </span>
         {/if}
       </button>
@@ -112,146 +60,66 @@
   <nav class="tabs">
     <button
       class="tab"
-      class:active={game.activeView ===
-        "board"}
-      onclick={() =>
-        game.setView("board")}
-      >Board</button
+      class:active={game.activeView === 'board'}
+      onclick={() => game.setView('board')}>Board</button
     >
     <button
       class="tab"
-      class:active={game.activeView ===
-        "unlocks"}
-      onclick={() =>
-        game.setView(
-          "unlocks",
-        )}
+      class:active={game.activeView === 'unlocks'}
+      onclick={() => game.setView('unlocks')}
     >
       Unlocks
-      {#if game.nextUnlock && game.pointokus >= game.nextUnlock.cost}<span
-          class="afford-dot"
+      {#if game.nextUnlock && game.pointokus >= game.nextUnlock.cost}<span class="afford-dot"
         ></span>{/if}
     </button>
     <button
       class="tab"
-      class:active={game.activeView ===
-        "statistics"}
-      onclick={() =>
-        game.setView(
-          "statistics",
-        )}>Statistics</button
+      class:active={game.activeView === 'statistics'}
+      onclick={() => game.setView('statistics')}>Statistics</button
     >
     <button
       class="tab"
-      class:active={game.activeView ===
-        "settings"}
-      onclick={() =>
-        game.setView(
-          "settings",
-        )}>Settings</button
+      class:active={game.activeView === 'settings'}
+      onclick={() => game.setView('settings')}>Settings</button
     >
   </nav>
 
   <div class="body">
-    {#if game.activeView === "board"}
-      <main
-        class="board-area"
-      >
-        <div
-          class="board-panel"
-        >
-          <div
-            class="board-col"
-          >
+    {#if game.activeView === 'board'}
+      <main class="board-area">
+        <div class="board-panel">
+          <div class="board-col">
             {#if game.speedBonusOwned}
               {#key game.activeBoard}
-                <div
-                  class="meter-slot"
-                  class:reserved={game.status ===
-                    "idle"}
-                >
-                  <SpeedMeter
-                  />
+                <div class="meter-slot" class:reserved={game.status === 'idle'}>
+                  <SpeedMeter />
                 </div>
               {/key}
             {/if}
-            <div
-              class="board-wrap"
-            >
-              <Board
-                onCellPress={(
-                  i,
-                  e,
-                ) =>
-                  picker?.begin(
-                    i,
-                    e,
-                  )}
-              />
-              {#if game.status === "idle"}
-                <div
-                  class="start-overlay"
-                >
-                  <button
-                    class="start-btn"
-                    onclick={() =>
-                      game.start()}
-                    >▶ Start
-                    Puzzle</button
-                  >
-                  <div
-                    class="start-caption"
-                  >
-                    populates
-                    locked
-                    cells
-                  </div>
+            <div class="board-wrap">
+              <Board onCellPress={(i, e) => picker?.begin(i, e)} />
+              {#if game.status === 'idle'}
+                <div class="start-overlay">
+                  <button class="start-btn" onclick={() => game.start()}>▶ Start Puzzle</button>
+                  <div class="start-caption">populates locked cells</div>
                 </div>
               {/if}
             </div>
             <!-- Kept mounted (hidden) when idle so the board holds its playing
                  position — pressing Start reveals the pad without reflowing the grid. -->
-            <div
-              class="pad-slot"
-              class:reserved={game.status ===
-                "idle"}
-            >
+            <div class="pad-slot" class:reserved={game.status === 'idle'}>
               <NumberPad />
             </div>
           </div>
 
-          {#if game.status === "complete" && game.lastResult}
-            <div
-              class="completion"
-            >
-              <span
-                class="completion-points"
-                >+{game
-                  .lastResult
-                  .points} P</span
-              >
-              <span
-                class="completion-time"
-                >{(
-                  game
-                    .lastResult
-                    .timeMs /
-                  1000
-                ).toFixed(
-                  1,
-                )}s</span
-              >
-              {#if game.lastResult.speedApplied}<span
-                  class="completion-speed"
-                  >SPEED ×{game
-                    .lastResult
-                    .bracketMult}</span
+          {#if game.status === 'complete' && game.lastResult}
+            <div class="completion">
+              <span class="completion-points">+{game.lastResult.points} P</span>
+              <span class="completion-time">{(game.lastResult.timeMs / 1000).toFixed(1)}s</span>
+              {#if game.lastResult.speedApplied}<span class="completion-speed"
+                  >SPEED ×{game.lastResult.bracketMult}</span
                 >{/if}
-              {#if game.lastWasRecord}<span
-                  class="completion-record"
-                  >★ NEW
-                  RECORD!</span
-                >{/if}
+              {#if game.lastWasRecord}<span class="completion-record">★ NEW RECORD!</span>{/if}
             </div>
           {/if}
         </div>
@@ -262,9 +130,9 @@
       </aside>
 
       <BoardsSheet />
-    {:else if game.activeView === "unlocks"}
+    {:else if game.activeView === 'unlocks'}
       <UnlocksView />
-    {:else if game.activeView === "statistics"}
+    {:else if game.activeView === 'statistics'}
       <StatisticsView />
     {:else}
       <SettingsView />
@@ -278,17 +146,14 @@
       multiplier={game.recordMultiplier}
       total={game.bankPreview}
       onconfirm={() => {
-        game.resetAll()
-        showReset = false
+        game.resetAll();
+        showReset = false;
       }}
-      oncancel={() =>
-        (showReset = false)}
+      oncancel={() => (showReset = false)}
     />
   {/if}
 
-  <KeypadPicker
-    bind:this={picker}
-  />
+  <KeypadPicker bind:this={picker} />
 </div>
 
 <style>
@@ -303,13 +168,11 @@
     height: 8px;
     border-radius: 50%;
     background: var(--accent);
-    animation: pulsedot 1.6s
-      ease-in-out infinite;
+    animation: pulsedot 1.6s ease-in-out infinite;
   }
 
   .wordmark {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -321,8 +184,7 @@
   }
 
   .version {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     color: var(--dim);
   }
@@ -339,26 +201,21 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
-    background: var(
-      --panel-2
-    );
-    border: 1px solid
-      var(--border-2);
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
     border-radius: 12px;
     padding: 9px 30px;
   }
 
   .points-box-label {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     letter-spacing: 3.5px;
     color: var(--muted-2);
   }
 
   .points-box-value {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 40px;
     font-weight: 700;
     color: var(--points);
@@ -369,9 +226,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    background: var(
-      --accent-fill
-    );
+    background: var(--accent-fill);
     border: 1px solid #2f6b5a;
     border-radius: 12px;
     padding: 9px 18px;
@@ -379,8 +234,7 @@
   }
 
   .reset-btn.active {
-    box-shadow: 0 0 24px
-      rgba(94, 234, 212, 0.14);
+    box-shadow: 0 0 24px rgba(94, 234, 212, 0.14);
   }
 
   .reset-text {
@@ -391,8 +245,7 @@
   }
 
   .reset-label {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 9.5px;
     letter-spacing: 2.5px;
     color: var(--accent);
@@ -401,9 +254,7 @@
   .reset-divider {
     width: 1px;
     height: 34px;
-    background: var(
-      --accent-border
-    );
+    background: var(--accent-border);
   }
 
   .reset-gain {
@@ -414,8 +265,7 @@
   }
 
   .reset-gain-value {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 24px;
     font-weight: 700;
     color: var(--accent);
@@ -423,8 +273,7 @@
   }
 
   .reset-gain-label {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 8.5px;
     letter-spacing: 2px;
     color: #3f6b60;
@@ -435,8 +284,7 @@
     justify-content: center;
     gap: 4px;
     padding: 0 22px;
-    border-bottom: 1px solid
-      var(--border);
+    border-bottom: 1px solid var(--border);
   }
 
   .tab {
@@ -446,21 +294,17 @@
     padding: 14px 16px;
     margin-bottom: -1px;
     border: 0;
-    border-bottom: 2px solid
-      transparent;
+    border-bottom: 2px solid transparent;
     background: transparent;
     color: var(--dim);
-    font-family: "Space Grotesk",
-      sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 13.5px;
     font-weight: 500;
     cursor: pointer;
   }
 
   .tab.active {
-    border-bottom-color: var(
-      --accent
-    );
+    border-bottom-color: var(--accent);
     color: var(--text);
     font-weight: 600;
   }
@@ -470,13 +314,11 @@
     height: 7px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 8px
-      rgba(94, 234, 212, 0.7);
+    box-shadow: 0 0 8px rgba(94, 234, 212, 0.7);
   }
 
   .board-caption {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     letter-spacing: 1.5px;
     color: var(--dim);
@@ -522,15 +364,8 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(
-      9,
-      12,
-      16,
-      0.62
-    );
-    backdrop-filter: blur(
-      2px
-    );
+    background: rgba(9, 12, 16, 0.62);
+    backdrop-filter: blur(2px);
     border-radius: 14px;
   }
 
@@ -538,25 +373,20 @@
     padding: 15px 34px;
     white-space: nowrap;
     background: var(--accent);
-    color: var(
-      --accent-on-dark
-    );
-    font-family: "Space Grotesk",
-      sans-serif;
+    color: var(--accent-on-dark);
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 600;
     font-size: 16px;
     letter-spacing: 0.5px;
     border: none;
     border-radius: 9px;
-    box-shadow: 0 0 30px
-      rgba(94, 234, 212, 0.4);
+    box-shadow: 0 0 30px rgba(94, 234, 212, 0.4);
     cursor: pointer;
   }
 
   .start-caption {
     white-space: nowrap;
-    font-family: "Space Grotesk",
-      sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 12px;
     color: var(--muted);
   }
@@ -565,8 +395,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
   }
 
@@ -581,11 +410,8 @@
 
   .completion-speed {
     color: var(--accent);
-    background: var(
-      --accent-fill
-    );
-    border: 1px solid
-      var(--accent-border);
+    background: var(--accent-fill);
+    border: 1px solid var(--accent-border);
     border-radius: 5px;
     padding: 2px 8px;
     font-size: 11px;
@@ -594,20 +420,13 @@
 
   .completion-record {
     color: var(--points);
-    background: rgba(
-      240,
-      200,
-      100,
-      0.1
-    );
-    border: 1px solid
-      var(--points);
+    background: rgba(240, 200, 100, 0.1);
+    border: 1px solid var(--points);
     border-radius: 5px;
     padding: 2px 8px;
     font-size: 11px;
     letter-spacing: 0.5px;
-    animation: recordpop 0.4s
-      ease-out;
+    animation: recordpop 0.4s ease-out;
   }
 
   @keyframes recordpop {
@@ -635,8 +454,7 @@
   }
 
   .filled-counter {
-    font-family: "JetBrains Mono",
-      monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     color: var(--dimmer-2);
   }
@@ -683,13 +501,7 @@
     }
     .reset-gain-value {
       font-size: 15px;
-      text-shadow: 0 0 10px
-        rgba(
-          94,
-          234,
-          212,
-          0.4
-        );
+      text-shadow: 0 0 10px rgba(94, 234, 212, 0.4);
     }
     .prestige-gain-label {
       display: none;
@@ -704,11 +516,8 @@
       gap: 4px;
       margin: 4px 12px 0;
       padding: 4px;
-      background: var(
-        --panel
-      );
-      border: 1px solid
-        var(--border-5);
+      background: var(--panel);
+      border: 1px solid var(--border-5);
       border-radius: 11px;
     }
     .tab {
@@ -722,11 +531,8 @@
       font-size: 13px;
     }
     .tab.active {
-      background: var(
-        --accent-fill
-      );
-      border: 1px solid
-        var(--accent-border);
+      background: var(--accent-fill);
+      border: 1px solid var(--accent-border);
       color: var(--accent);
     }
 

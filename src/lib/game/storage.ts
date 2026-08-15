@@ -1,109 +1,109 @@
-const KEY = 'sudoku-incremental:pointokus';
+const KEY = 'sudoku-incremental:pointokus'
 
 export function loadPointokus(): number {
-  const raw = localStorage.getItem(KEY);
-  if (raw === null) return 0;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 0;
+  const raw = localStorage.getItem(KEY)
+  if (raw === null) return 0
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : 0
 }
 
 export function savePointokus(value: number): void {
-  localStorage.setItem(KEY, String(value));
+  localStorage.setItem(KEY, String(value))
 }
 
-const UNLOCKS_KEY = 'sudoku-incremental:unlocks';
+const UNLOCKS_KEY = 'sudoku-incremental:unlocks'
 
 export function loadUnlocks(): string[] {
-  const raw = localStorage.getItem(UNLOCKS_KEY);
-  if (raw === null) return [];
+  const raw = localStorage.getItem(UNLOCKS_KEY)
+  if (raw === null) return []
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : []
   } catch {
-    return [];
+    return []
   }
 }
 
 export function saveUnlocks(ids: string[]): void {
-  localStorage.setItem(UNLOCKS_KEY, JSON.stringify(ids));
+  localStorage.setItem(UNLOCKS_KEY, JSON.stringify(ids))
 }
 
 // Per-board difficulty tiers. Easy ('easy') is always owned/selected by default.
 function tiersKey(boardId: string): string {
-  return `sudoku-incremental:tiers:${boardId}`;
+  return `sudoku-incremental:tiers:${boardId}`
 }
 
 function selectedTierKey(boardId: string): string {
-  return `sudoku-incremental:tier-selected:${boardId}`;
+  return `sudoku-incremental:tier-selected:${boardId}`
 }
 
 export function loadOwnedTiers(boardId: string): string[] {
-  const raw = localStorage.getItem(tiersKey(boardId));
-  if (raw === null) return ['easy'];
+  const raw = localStorage.getItem(tiersKey(boardId))
+  if (raw === null) return ['easy']
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw)
     const ids = Array.isArray(parsed)
       ? parsed.filter((x): x is string => typeof x === 'string')
-      : [];
-    return ids.includes('easy') ? ids : ['easy', ...ids];
+      : []
+    return ids.includes('easy') ? ids : ['easy', ...ids]
   } catch {
-    return ['easy'];
+    return ['easy']
   }
 }
 
 export function saveOwnedTiers(boardId: string, ids: string[]): void {
-  localStorage.setItem(tiersKey(boardId), JSON.stringify(ids));
+  localStorage.setItem(tiersKey(boardId), JSON.stringify(ids))
 }
 
 export function loadSelectedTier(boardId: string): string {
-  const raw = localStorage.getItem(selectedTierKey(boardId));
-  return raw === null ? 'easy' : raw;
+  const raw = localStorage.getItem(selectedTierKey(boardId))
+  return raw === null ? 'easy' : raw
 }
 
 export function saveSelectedTier(boardId: string, id: string): void {
-  localStorage.setItem(selectedTierKey(boardId), id);
+  localStorage.setItem(selectedTierKey(boardId), id)
 }
 
-const ACTIVE_BOARD_KEY = 'sudoku-incremental:active-board';
+const ACTIVE_BOARD_KEY = 'sudoku-incremental:active-board'
 
 export function loadActiveBoard(): string {
-  const raw = localStorage.getItem(ACTIVE_BOARD_KEY);
-  return raw === null ? 'default' : raw;
+  const raw = localStorage.getItem(ACTIVE_BOARD_KEY)
+  return raw === null ? 'default' : raw
 }
 
 export function saveActiveBoard(id: string): void {
-  localStorage.setItem(ACTIVE_BOARD_KEY, id);
+  localStorage.setItem(ACTIVE_BOARD_KEY, id)
 }
 
-const OWNED_BOARDS_KEY = 'sudoku-incremental:owned-boards';
+const OWNED_BOARDS_KEY = 'sudoku-incremental:owned-boards'
 
 export function loadOwnedBoards(): string[] {
-  const raw = localStorage.getItem(OWNED_BOARDS_KEY);
-  if (raw === null) return [];
+  const raw = localStorage.getItem(OWNED_BOARDS_KEY)
+  if (raw === null) return []
   try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : []
   } catch {
-    return [];
+    return []
   }
 }
 
 export function saveOwnedBoards(ids: string[]): void {
-  localStorage.setItem(OWNED_BOARDS_KEY, JSON.stringify(ids));
+  localStorage.setItem(OWNED_BOARDS_KEY, JSON.stringify(ids))
 }
 
 // Per-board best solve time in ms. null = no record yet (distinct from any real time).
 function recordKey(boardId: string): string {
-  return `sudoku-incremental:record:${boardId}`;
+  return `sudoku-incremental:record:${boardId}`
 }
 
 export function loadRecord(boardId: string): number | null {
-  const raw = localStorage.getItem(recordKey(boardId));
-  if (raw === null) return null;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
+  const raw = localStorage.getItem(recordKey(boardId))
+  if (raw === null) return null
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : null
 }
 
 export function saveRecord(boardId: string, ms: number): void {
-  localStorage.setItem(recordKey(boardId), String(ms));
+  localStorage.setItem(recordKey(boardId), String(ms))
 }

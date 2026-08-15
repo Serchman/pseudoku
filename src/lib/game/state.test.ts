@@ -117,8 +117,8 @@ describe('board selection and purchasing', () => {
     localStorage.setItem('sudoku-incremental:pointokus', '5745')
     const game = createGame()
 
-    game.buyBoard('board6x3')  // -575 → 5170, active=board6x3
-    game.buyTier('medium')     // -5170 → 0, medium owned on board6x3
+    game.buyBoard('board6x3') // -575 → 5170, active=board6x3
+    game.buyTier('medium') // -5170 → 0, medium owned on board6x3
     game.selectTier('medium') // medium selected on board6x3
 
     game.selectBoard('default')
